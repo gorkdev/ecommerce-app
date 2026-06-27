@@ -41,6 +41,7 @@ mobile/*.iml
 
 # ===== Developer-internal docs (kept local, not for the public repo) =====
 docs/specs/
+CLAUDE.md
 
 # ===== IDE / OS =====
 .idea/
