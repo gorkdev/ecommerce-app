@@ -20,6 +20,7 @@ pnpm-debug.log*
 # ===== Prisma =====
 api/prisma/*.db
 api/prisma/migrations/dev.db*
+api/src/generated/
 
 # ===== Flutter / Dart =====
 mobile/.dart_tool/
