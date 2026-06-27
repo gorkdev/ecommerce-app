@@ -45,6 +45,12 @@ management, and users.
 - **Docker-first.** Backing services run in containers; prefer reproducible setups.
 - **Professional patterns.** DTO validation, layered modules, typed clients,
   migrations (never manual SQL), env-based config, no secrets in git.
+- **Test every feature.** After implementing a feature, write detailed tests for it
+  (unit tests for services, e2e tests for endpoints/flows). A feature is not "done"
+  until its tests are written and passing.
+- **Commit + push per feature.** As soon as a feature is complete and its tests pass,
+  make a Conventional Commit and push it immediately. Do not batch unrelated features
+  into a single commit.
 - **Docs.** Keep `docs/specs` and this file in sync when decisions change.
 
 ## Commit & push rules
