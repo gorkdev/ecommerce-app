@@ -46,7 +46,6 @@ all orchestrated with **Docker Compose**.
 | Orchestration | Docker Compose | — |
 
 > Version choices are deliberately the **latest *stable*** of each tool (no betas/RCs).
-> See [`docs/specs`](docs/specs) for the rationale.
 
 ## Repository Structure
 
@@ -55,7 +54,6 @@ ecommerce-app/
 ├── api/                # NestJS + Prisma REST API
 ├── admin/              # Next.js admin dashboard
 ├── mobile/             # Flutter customer app
-├── docs/specs/         # Design specs
 ├── docker-compose.yml  # postgres + minio (infra)
 └── .env.example        # configuration template
 ```

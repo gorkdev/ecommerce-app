@@ -39,6 +39,9 @@ mobile/*.iml
 # ===== Docker / data =====
 .minio-data/
 
+# ===== Developer-internal docs (kept local, not for the public repo) =====
+docs/specs/
+
 # ===== IDE / OS =====
 .idea/
 .vscode/*

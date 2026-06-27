@@ -27,7 +27,6 @@ complete, professional product showcasing mobile + backend + admin together.
 - `api/` — NestJS + Prisma REST API (source of truth for the data model)
 - `admin/` — Next.js admin dashboard
 - `mobile/` — Flutter customer app
-- `docs/specs/` — design specs (read before large changes)
 - `docker-compose.yml` — Postgres + MinIO (app services added later)
 
 ## Full scope (nothing deferred)
@@ -51,7 +50,9 @@ management, and users.
 - **Commit + push per feature.** As soon as a feature is complete and its tests pass,
   make a Conventional Commit and push it immediately. Do not batch unrelated features
   into a single commit.
-- **Docs.** Keep `docs/specs` and this file in sync when decisions change.
+- **Docs.** Keep this guide in sync when decisions change. (The detailed design
+  spec is kept developer-local under `docs/specs/`, which is gitignored — not part
+  of the public portfolio repo.)
 
 ## Commit & push rules
 
