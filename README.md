@@ -80,7 +80,7 @@ as those milestones land.
 - [x] **M1** — Backend foundation (NestJS skeleton, Prisma schema, initial migration)
 - [x] **M2** — Auth (JWT access/refresh, roles, guards) — unit + e2e tested
 - [x] **M3** — Catalog (categories + products: admin CRUD, public list/detail) — unit + e2e tested
-- [ ] **M4** — Media (MinIO uploads, presigned URLs)
+- [x] **M4** — Media (MinIO uploads, presigned URLs) — unit + e2e tested
 - [ ] **M5** — Cart + Favorites
 - [ ] **M6** — Orders + Stripe checkout + webhooks
 - [ ] **M7** — Reviews & ratings
