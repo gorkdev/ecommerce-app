@@ -81,7 +81,7 @@ as those milestones land.
 - [x] **M2** — Auth (JWT access/refresh, roles, guards) — unit + e2e tested
 - [x] **M3** — Catalog (categories + products: admin CRUD, public list/detail) — unit + e2e tested
 - [x] **M4** — Media (MinIO uploads, presigned URLs) — unit + e2e tested
-- [ ] **M5** — Cart + Favorites
+- [x] **M5** — Cart + Favorites (server-side cart, wishlist) — unit + e2e tested
 - [ ] **M6** — Orders + Stripe checkout + webhooks
 - [ ] **M7** — Reviews & ratings
 - [ ] **M8** — Coupons / discounts
