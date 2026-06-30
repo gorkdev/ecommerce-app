@@ -82,7 +82,7 @@ as those milestones land.
 - [x] **M3** — Catalog (categories + products: admin CRUD, public list/detail) — unit + e2e tested
 - [x] **M4** — Media (MinIO uploads, presigned URLs) — unit + e2e tested
 - [x] **M5** — Cart + Favorites (server-side cart, wishlist) — unit + e2e tested
-- [ ] **M6** — Orders + Stripe checkout + webhooks
+- [x] **M6** — Orders + Stripe checkout + webhooks — unit + e2e tested
 - [ ] **M7** — Reviews & ratings
 - [ ] **M8** — Coupons / discounts
 - [ ] **M9** — Admin panel UI (dashboard, products, orders, users)
