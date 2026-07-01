@@ -8,6 +8,7 @@ import { ProductModule } from './product/product.module';
 import { CartModule } from './cart/cart.module';
 import { FavoriteModule } from './favorite/favorite.module';
 import { OrderModule } from './order/order.module';
+import { ReviewModule } from './review/review.module';
 import { HealthController } from './health/health.controller';
 
 @Module({
@@ -21,6 +22,7 @@ import { HealthController } from './health/health.controller';
     CartModule,
     FavoriteModule,
     OrderModule,
+    ReviewModule,
   ],
   controllers: [HealthController],
 })

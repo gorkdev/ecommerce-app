@@ -83,7 +83,7 @@ as those milestones land.
 - [x] **M4** — Media (MinIO uploads, presigned URLs) — unit + e2e tested
 - [x] **M5** — Cart + Favorites (server-side cart, wishlist) — unit + e2e tested
 - [x] **M6** — Orders + Stripe checkout + webhooks — unit + e2e tested
-- [ ] **M7** — Reviews & ratings
+- [x] **M7** — Reviews & ratings (verified-buyer reviews, rating summary, admin moderation) — unit + e2e tested
 - [ ] **M8** — Coupons / discounts
 - [ ] **M9** — Admin panel UI (dashboard, products, orders, users)
 - [ ] **M10** — Flutter app (full customer flow)
