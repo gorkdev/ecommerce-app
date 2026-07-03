@@ -3,6 +3,7 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { PaymentService } from '../payment/payment.service';
+import { CouponService } from '../coupon/coupon.service';
 import { Prisma, OrderStatus } from '../generated/prisma/client';
 
 type PrismaMock = {
@@ -17,6 +18,7 @@ type PrismaMock = {
   };
   product: { updateMany: jest.Mock; update: jest.Mock };
   cartItem: { deleteMany: jest.Mock };
+  coupon: { updateMany: jest.Mock };
   address: { findFirst: jest.Mock };
   $transaction: jest.Mock;
 };
@@ -39,6 +41,7 @@ describe('OrderService', () => {
   let service: OrderService;
   let prisma: PrismaMock;
   let payment: { createPaymentIntent: jest.Mock };
+  let coupons: { resolve: jest.Mock };
 
   beforeEach(async () => {
     prisma = {
@@ -53,6 +56,7 @@ describe('OrderService', () => {
       },
       product: { updateMany: jest.fn(), update: jest.fn() },
       cartItem: { deleteMany: jest.fn() },
+      coupon: { updateMany: jest.fn() },
       address: { findFirst: jest.fn() },
       // Support both the array form (findAll) and the callback form (checkout).
       $transaction: jest.fn((arg: unknown) =>
@@ -67,12 +71,16 @@ describe('OrderService', () => {
         client_secret: 'secret_123',
       }),
     };
+    // These order tests never pass a coupon code, so a bare stub suffices;
+    // coupon pricing/redemption is covered in coupon.service + the e2e flow.
+    coupons = { resolve: jest.fn() };
 
     const moduleRef = await Test.createTestingModule({
       providers: [
         OrderService,
         { provide: PrismaService, useValue: prisma },
         { provide: PaymentService, useValue: payment },
+        { provide: CouponService, useValue: coupons },
       ],
     }).compile();
 

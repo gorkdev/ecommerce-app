@@ -84,7 +84,7 @@ as those milestones land.
 - [x] **M5** — Cart + Favorites (server-side cart, wishlist) — unit + e2e tested
 - [x] **M6** — Orders + Stripe checkout + webhooks — unit + e2e tested
 - [x] **M7** — Reviews & ratings (verified-buyer reviews, rating summary, admin moderation) — unit + e2e tested
-- [ ] **M8** — Coupons / discounts
+- [x] **M8** — Coupons / discounts (admin CRUD, cart preview, atomic checkout redemption) — unit + e2e tested
 - [ ] **M9** — Admin panel UI (dashboard, products, orders, users)
 - [ ] **M10** — Flutter app (full customer flow)
 - [ ] **M11** — Internationalization (i18n)

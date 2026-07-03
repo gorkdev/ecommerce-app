@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { PaymentService } from '../payment/payment.service';
+import { CouponService } from '../coupon/coupon.service';
 import { Prisma, OrderStatus } from '../generated/prisma/client';
 import { CheckoutDto } from './dto/checkout.dto';
 import { QueryOrderDto } from './dto/query-order.dto';
@@ -24,6 +25,7 @@ const ORDER_INCLUDE = {
     },
   },
   address: true,
+  coupon: { select: { id: true, code: true, type: true } },
 } satisfies Prisma.OrderInclude;
 
 // Which status moves the admin (or the system) is allowed to make. Payment
@@ -43,6 +45,7 @@ export class OrderService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly payment: PaymentService,
+    private readonly coupons: CouponService,
   ) {}
 
   // Turn the user's cart into a PENDING order and open a Stripe PaymentIntent.
@@ -76,8 +79,18 @@ export class OrderService {
     for (const item of cart.items) {
       subtotal = subtotal.plus(item.product.price.mul(item.quantity));
     }
-    // Coupons (discountTotal) arrive in M8; the order keeps the column at zero.
-    const discountTotal = new Prisma.Decimal(0);
+
+    // A coupon code (optional) is validated against the subtotal here and
+    // atomically redeemed inside the transaction below.
+    let discountTotal = new Prisma.Decimal(0);
+    let couponId: string | null = null;
+    let couponMaxUses: number | null = null;
+    if (dto.couponCode) {
+      const applied = await this.coupons.resolve(dto.couponCode, subtotal);
+      discountTotal = applied.discount;
+      couponId = applied.coupon.id;
+      couponMaxUses = applied.coupon.maxUses;
+    }
     const total = subtotal.minus(discountTotal);
     const currency = cart.items[0].product.currency;
 
@@ -96,6 +109,23 @@ export class OrderService {
         }
       }
 
+      // Redeem the coupon under the same guard: the conditional update only
+      // bumps usedCount while the usage cap still has room, so concurrent
+      // checkouts can't push a limited coupon past maxUses.
+      if (couponId) {
+        const where: Prisma.CouponWhereInput = { id: couponId, isActive: true };
+        if (couponMaxUses !== null) {
+          where.usedCount = { lt: couponMaxUses };
+        }
+        const bumped = await tx.coupon.updateMany({
+          where,
+          data: { usedCount: { increment: 1 } },
+        });
+        if (bumped.count === 0) {
+          throw new BadRequestException('Coupon is no longer available');
+        }
+      }
+
       const created = await tx.order.create({
         data: {
           userId,
@@ -105,6 +135,7 @@ export class OrderService {
           total,
           currency,
           addressId: dto.addressId ?? null,
+          couponId,
           items: {
             create: cart.items.map((item) => ({
               productId: item.productId,

@@ -9,6 +9,7 @@ import { CartModule } from './cart/cart.module';
 import { FavoriteModule } from './favorite/favorite.module';
 import { OrderModule } from './order/order.module';
 import { ReviewModule } from './review/review.module';
+import { CouponModule } from './coupon/coupon.module';
 import { HealthController } from './health/health.controller';
 
 @Module({
@@ -23,6 +24,7 @@ import { HealthController } from './health/health.controller';
     FavoriteModule,
     OrderModule,
     ReviewModule,
+    CouponModule,
   ],
   controllers: [HealthController],
 })
