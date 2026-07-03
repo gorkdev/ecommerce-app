@@ -48,11 +48,20 @@ export class ProductService {
   }
 
   // Public catalog listing: active products only, with search/filter/paging.
-  async findAll(query: QueryProductDto): Promise<PaginatedProducts> {
-    const page = query.page ?? 1;
-    const limit = Math.min(query.limit ?? 20, MAX_PAGE_SIZE);
+  findAll(query: QueryProductDto): Promise<PaginatedProducts> {
+    return this.paginate(
+      { isActive: true, ...this.buildFilters(query) },
+      query,
+    );
+  }
 
-    const where: Prisma.ProductWhereInput = { isActive: true };
+  // Admin listing: every product regardless of isActive (drafts included).
+  findAllForAdmin(query: QueryProductDto): Promise<PaginatedProducts> {
+    return this.paginate(this.buildFilters(query), query);
+  }
+
+  private buildFilters(query: QueryProductDto): Prisma.ProductWhereInput {
+    const where: Prisma.ProductWhereInput = {};
     if (query.categoryId) {
       where.categoryId = query.categoryId;
     }
@@ -64,6 +73,15 @@ export class ProductService {
       if (query.minPrice !== undefined) where.price.gte = query.minPrice;
       if (query.maxPrice !== undefined) where.price.lte = query.maxPrice;
     }
+    return where;
+  }
+
+  private async paginate(
+    where: Prisma.ProductWhereInput,
+    query: QueryProductDto,
+  ): Promise<PaginatedProducts> {
+    const page = query.page ?? 1;
+    const limit = Math.min(query.limit ?? 20, MAX_PAGE_SIZE);
 
     const orderBy: Prisma.ProductOrderByWithRelationInput =
       query.sort === 'price_asc'

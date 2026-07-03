@@ -142,6 +142,21 @@ describe('ProductService', () => {
     });
   });
 
+  describe('findAllForAdmin', () => {
+    it('lists products without the isActive filter (drafts included)', async () => {
+      prisma.product.findMany.mockResolvedValue([]);
+      prisma.product.count.mockResolvedValue(0);
+
+      await service.findAllForAdmin({ search: 'shoe' });
+
+      const findArgs = prisma.product.findMany.mock.calls[0][0];
+      expect(findArgs.where).toEqual({
+        name: { contains: 'shoe', mode: 'insensitive' },
+      });
+      expect(findArgs.where.isActive).toBeUndefined();
+    });
+  });
+
   describe('findBySlug', () => {
     it('throws when missing', async () => {
       prisma.product.findUnique.mockResolvedValue(null);

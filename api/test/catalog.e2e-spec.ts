@@ -213,6 +213,56 @@ describe('Catalog (e2e)', () => {
     ).toBe(true);
   });
 
+  // ---- Admin listing (includes inactive) ----
+
+  it('requires admin for the admin product listing', async () => {
+    await request(app.getHttpServer()).get('/api/admin/products').expect(401);
+    await request(app.getHttpServer())
+      .get('/api/admin/products')
+      .set('Authorization', `Bearer ${customerToken}`)
+      .expect(403);
+  });
+
+  it('shows inactive products to admins but hides them publicly', async () => {
+    const draft = await request(app.getHttpServer())
+      .post('/api/products')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        name: 'Draft Shoes',
+        slug: 'e2e-running-shoes-2',
+        description: 'Not yet published',
+        price: 20,
+        stock: 3,
+        isActive: false,
+        categoryId,
+      })
+      .expect(201);
+    const draftId = draft.body.id;
+
+    // Public listing filters out inactive products.
+    const publicList = await request(app.getHttpServer())
+      .get('/api/products')
+      .expect(200);
+    expect(
+      publicList.body.data.some((p: { id: string }) => p.id === draftId),
+    ).toBe(false);
+
+    // Admin listing includes the draft.
+    const adminList = await request(app.getHttpServer())
+      .get('/api/admin/products')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200);
+    expect(
+      adminList.body.data.some((p: { id: string }) => p.id === draftId),
+    ).toBe(true);
+
+    // Remove the draft so the category can be deleted later.
+    await request(app.getHttpServer())
+      .delete(`/api/products/${draftId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(204);
+  });
+
   // ---- Update / delete ----
 
   it('lets an admin update a product', async () => {
