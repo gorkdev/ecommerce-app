@@ -88,7 +88,8 @@ as those milestones land.
 - [ ] **M9** — Admin panel UI (dashboard, products, orders, users) — _in progress_
   - [x] Foundation: Next.js 16 + shadcn/ui, JWT admin login, protected shell, Products CRUD
   - [x] Product media upload (MinIO presigned uploads, image management)
-  - [ ] Categories · orders · coupons · reviews · users · dashboard
+  - [x] Categories (nested tree CRUD, re-parent with cycle guard)
+  - [ ] Orders · coupons · reviews · users · dashboard
 - [ ] **M10** — Flutter app (full customer flow)
 - [ ] **M11** — Internationalization (i18n)
 - [ ] **M12** — Push notifications (FCM)
