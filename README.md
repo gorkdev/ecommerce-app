@@ -87,7 +87,8 @@ as those milestones land.
 - [x] **M8** — Coupons / discounts (admin CRUD, cart preview, atomic checkout redemption) — unit + e2e tested
 - [ ] **M9** — Admin panel UI (dashboard, products, orders, users) — _in progress_
   - [x] Foundation: Next.js 16 + shadcn/ui, JWT admin login, protected shell, Products CRUD
-  - [ ] Media upload · categories · orders · coupons · reviews · users · dashboard
+  - [x] Product media upload (MinIO presigned uploads, image management)
+  - [ ] Categories · orders · coupons · reviews · users · dashboard
 - [ ] **M10** — Flutter app (full customer flow)
 - [ ] **M11** — Internationalization (i18n)
 - [ ] **M12** — Push notifications (FCM)
