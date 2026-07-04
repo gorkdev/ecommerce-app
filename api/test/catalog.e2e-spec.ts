@@ -24,7 +24,11 @@ describe('Catalog (e2e)', () => {
     await prisma.product.deleteMany({
       where: { slug: { in: [productSlug, 'e2e-running-shoes-2'] } },
     });
-    await prisma.category.deleteMany({ where: { slug: categorySlug } });
+    await prisma.category.deleteMany({
+      where: {
+        slug: { in: [categorySlug, 'e2e-parent-cat', 'e2e-child-cat'] },
+      },
+    });
     await prisma.user.deleteMany({
       where: { email: { in: [adminEmail, customerEmail] } },
     });
@@ -259,6 +263,57 @@ describe('Catalog (e2e)', () => {
     // Remove the draft so the category can be deleted later.
     await request(app.getHttpServer())
       .delete(`/api/products/${draftId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(204);
+  });
+
+  // ---- Category nesting (re-parent / detach / cycle guard) ----
+
+  it('nests, detaches, and guards categories against cycles', async () => {
+    const parent = await request(app.getHttpServer())
+      .post('/api/categories')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ name: 'Parent', slug: 'e2e-parent-cat' })
+      .expect(201);
+    const child = await request(app.getHttpServer())
+      .post('/api/categories')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ name: 'Child', slug: 'e2e-child-cat', parentId: parent.body.id })
+      .expect(201);
+
+    // The child nests under the parent in the public tree.
+    const tree = await request(app.getHttpServer())
+      .get('/api/categories')
+      .expect(200);
+    const parentNode = tree.body.find(
+      (c: { id: string }) => c.id === parent.body.id,
+    );
+    expect(
+      parentNode.children.some((c: { id: string }) => c.id === child.body.id),
+    ).toBe(true);
+
+    // Moving the parent under its own child is a cycle → rejected.
+    await request(app.getHttpServer())
+      .patch(`/api/categories/${parent.body.id}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ parentId: child.body.id })
+      .expect(409);
+
+    // Detaching the child to the top level (parentId: null) succeeds.
+    const detached = await request(app.getHttpServer())
+      .patch(`/api/categories/${child.body.id}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ parentId: null })
+      .expect(200);
+    expect(detached.body.parentId).toBeNull();
+
+    // Cleanup.
+    await request(app.getHttpServer())
+      .delete(`/api/categories/${child.body.id}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(204);
+    await request(app.getHttpServer())
+      .delete(`/api/categories/${parent.body.id}`)
       .set('Authorization', `Bearer ${adminToken}`)
       .expect(204);
   });

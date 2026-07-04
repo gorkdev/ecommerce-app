@@ -80,11 +80,19 @@ export class CategoryService {
       await this.ensureSlugFree(slug, id);
     }
 
-    if (dto.parentId !== undefined && dto.parentId === id) {
-      throw new ConflictException('A category cannot be its own parent');
-    }
+    // A non-null parentId re-parents the category; guard against cycles.
+    // (parentId === null detaches it to the top level and needs no checks.)
     if (dto.parentId) {
+      if (dto.parentId === id) {
+        throw new ConflictException('A category cannot be its own parent');
+      }
       await this.ensureExists(dto.parentId);
+      const descendants = await this.collectDescendantIds(id);
+      if (descendants.has(dto.parentId)) {
+        throw new ConflictException(
+          'A category cannot be moved under its own descendant',
+        );
+      }
     }
 
     return this.prisma.category.update({
@@ -108,6 +116,35 @@ export class CategoryService {
       );
     }
     await this.prisma.category.delete({ where: { id } });
+  }
+
+  // Every category id in the subtree below `rootId` (exclusive of the root).
+  private async collectDescendantIds(rootId: string): Promise<Set<string>> {
+    const all = await this.prisma.category.findMany({
+      select: { id: true, parentId: true },
+    });
+
+    const childrenByParent = new Map<string, string[]>();
+    for (const c of all) {
+      if (c.parentId) {
+        const list = childrenByParent.get(c.parentId) ?? [];
+        list.push(c.id);
+        childrenByParent.set(c.parentId, list);
+      }
+    }
+
+    const descendants = new Set<string>();
+    const stack = [rootId];
+    while (stack.length > 0) {
+      const current = stack.pop() as string;
+      for (const child of childrenByParent.get(current) ?? []) {
+        if (!descendants.has(child)) {
+          descendants.add(child);
+          stack.push(child);
+        }
+      }
+    }
+    return descendants;
   }
 
   private async ensureExists(id: string) {

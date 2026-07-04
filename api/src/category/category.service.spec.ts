@@ -107,6 +107,35 @@ describe('CategoryService', () => {
         service.update('c1', { parentId: 'c1' }),
       ).rejects.toBeInstanceOf(ConflictException);
     });
+
+    it('refuses to move a category under its own descendant', async () => {
+      // ensureExists(self) then ensureExists(newParent) both resolve.
+      prisma.category.findUnique
+        .mockResolvedValueOnce({ id: 'parent' })
+        .mockResolvedValueOnce({ id: 'child' });
+      // child is a descendant of parent → moving parent under child is a cycle.
+      prisma.category.findMany.mockResolvedValue([
+        { id: 'parent', parentId: null },
+        { id: 'child', parentId: 'parent' },
+      ]);
+
+      await expect(
+        service.update('parent', { parentId: 'child' }),
+      ).rejects.toBeInstanceOf(ConflictException);
+      expect(prisma.category.update).not.toHaveBeenCalled();
+    });
+
+    it('detaches a category to the top level when parentId is null', async () => {
+      prisma.category.findUnique.mockResolvedValue({ id: 'c1' });
+      prisma.category.update.mockResolvedValue({ id: 'c1', parentId: null });
+
+      await service.update('c1', { parentId: null });
+
+      expect(prisma.category.update).toHaveBeenCalledWith({
+        where: { id: 'c1' },
+        data: { parentId: null },
+      });
+    });
   });
 
   describe('remove', () => {
