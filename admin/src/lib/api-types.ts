@@ -68,6 +68,18 @@ export interface Paginated<T> {
   meta: PageMeta;
 }
 
+export interface Category extends CategoryRef {
+  parentId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CategoryInput {
+  name: string;
+  slug?: string;
+  parentId?: string | null;
+}
+
 export interface ProductInput {
   name: string;
   slug?: string;

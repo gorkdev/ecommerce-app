@@ -29,7 +29,7 @@ interface NavItem {
 const NAV: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, enabled: false },
   { href: "/products", label: "Products", icon: Package, enabled: true },
-  { href: "/categories", label: "Categories", icon: Tags, enabled: false },
+  { href: "/categories", label: "Categories", icon: Tags, enabled: true },
   { href: "/orders", label: "Orders", icon: ShoppingCart, enabled: false },
   { href: "/coupons", label: "Coupons", icon: Ticket, enabled: false },
   { href: "/reviews", label: "Reviews", icon: Star, enabled: false },
