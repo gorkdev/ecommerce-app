@@ -18,6 +18,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { ProductImagesManager } from "./product-images-manager";
 import { useCategoryOptions } from "@/lib/categories";
 import { useCreateProduct, useUpdateProduct } from "@/lib/products";
 import { apiErrorMessage } from "@/lib/api";
@@ -233,6 +235,16 @@ export function ProductFormDialog({ open, onOpenChange, product }: Props) {
             />
             Active (visible in the store)
           </label>
+
+          <Separator />
+
+          {isEdit && product ? (
+            <ProductImagesManager product={product} />
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Save the product first, then reopen it to upload images.
+            </p>
+          )}
 
           <DialogFooter>
             <Button
