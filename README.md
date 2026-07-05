@@ -89,7 +89,8 @@ as those milestones land.
   - [x] Foundation: Next.js 16 + shadcn/ui, JWT admin login, protected shell, Products CRUD
   - [x] Product media upload (MinIO presigned uploads, image management)
   - [x] Categories (nested tree CRUD, re-parent with cycle guard)
-  - [ ] Orders · coupons · reviews · users · dashboard
+  - [x] Orders (list, status filter, detail view, lifecycle transitions)
+  - [ ] Coupons · reviews · users · dashboard
 - [ ] **M10** — Flutter app (full customer flow)
 - [ ] **M11** — Internationalization (i18n)
 - [ ] **M12** — Push notifications (FCM)
