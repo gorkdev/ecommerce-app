@@ -91,3 +91,68 @@ export interface ProductInput {
   isActive?: boolean;
   categoryId: string;
 }
+
+export type OrderStatus =
+  | "PENDING"
+  | "PAID"
+  | "PREPARING"
+  | "SHIPPED"
+  | "DELIVERED"
+  | "CANCELLED"
+  | "REFUNDED";
+
+export interface OrderItem {
+  id: string;
+  productId: string;
+  nameSnapshot: string;
+  priceSnapshot: string;
+  quantity: number;
+  product?: {
+    id: string;
+    slug: string;
+    images: ProductImage[];
+  } | null;
+}
+
+export interface OrderAddress {
+  id: string;
+  fullName: string;
+  phone: string;
+  line1: string;
+  line2: string | null;
+  city: string;
+  district: string;
+  postalCode: string;
+  country: string;
+}
+
+export interface OrderCouponRef {
+  id: string;
+  code: string;
+  type: "PERCENTAGE" | "FIXED";
+}
+
+export interface OrderCustomer {
+  id: string;
+  email: string;
+  name: string;
+}
+
+export interface Order {
+  id: string;
+  userId: string;
+  status: OrderStatus;
+  subtotal: string;
+  discountTotal: string;
+  total: string;
+  currency: string;
+  addressId: string | null;
+  couponId: string | null;
+  stripePaymentIntentId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  items: OrderItem[];
+  address: OrderAddress | null;
+  coupon: OrderCouponRef | null;
+  user?: OrderCustomer;
+}

@@ -30,7 +30,7 @@ const NAV: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, enabled: false },
   { href: "/products", label: "Products", icon: Package, enabled: true },
   { href: "/categories", label: "Categories", icon: Tags, enabled: true },
-  { href: "/orders", label: "Orders", icon: ShoppingCart, enabled: false },
+  { href: "/orders", label: "Orders", icon: ShoppingCart, enabled: true },
   { href: "/coupons", label: "Coupons", icon: Ticket, enabled: false },
   { href: "/reviews", label: "Reviews", icon: Star, enabled: false },
   { href: "/users", label: "Users", icon: Users, enabled: false },
