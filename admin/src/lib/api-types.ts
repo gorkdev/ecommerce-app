@@ -126,10 +126,12 @@ export interface OrderAddress {
   country: string;
 }
 
+export type CouponType = "PERCENTAGE" | "FIXED";
+
 export interface OrderCouponRef {
   id: string;
   code: string;
-  type: "PERCENTAGE" | "FIXED";
+  type: CouponType;
 }
 
 export interface OrderCustomer {
@@ -155,4 +157,27 @@ export interface Order {
   address: OrderAddress | null;
   coupon: OrderCouponRef | null;
   user?: OrderCustomer;
+}
+
+export interface Coupon {
+  id: string;
+  code: string;
+  type: CouponType;
+  value: string;
+  minSubtotal: string;
+  maxUses: number | null;
+  usedCount: number;
+  expiresAt: string | null;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface CouponInput {
+  code: string;
+  type: CouponType;
+  value: number;
+  minSubtotal?: number;
+  maxUses?: number | null;
+  expiresAt?: string | null;
+  isActive?: boolean;
 }
