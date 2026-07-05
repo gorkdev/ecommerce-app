@@ -257,9 +257,11 @@ describe('Orders + Stripe (e2e)', () => {
       .set('Authorization', `Bearer ${adminToken}`)
       .expect(200);
 
-    expect(res.body.data.some((o: { id: string }) => o.id === orderAId)).toBe(
-      true,
-    );
+    const row = res.body.data.find((o: { id: string }) => o.id === orderAId);
+    expect(row).toBeDefined();
+    // Admin rows carry the customer identity (narrow select, no passwordHash).
+    expect(row.user.email).toBe(customerEmail);
+    expect(row.user.passwordHash).toBeUndefined();
   });
 
   it('advances a PAID order to PREPARING', async () => {

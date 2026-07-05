@@ -28,6 +28,13 @@ const ORDER_INCLUDE = {
   coupon: { select: { id: true, code: true, type: true } },
 } satisfies Prisma.OrderInclude;
 
+// Admin views also need to know who placed the order. A narrow select keeps
+// sensitive columns (passwordHash) out of the response.
+const ADMIN_ORDER_INCLUDE = {
+  ...ORDER_INCLUDE,
+  user: { select: { id: true, email: true, name: true } },
+} satisfies Prisma.OrderInclude;
+
 // Which status moves the admin (or the system) is allowed to make. Payment
 // flips PENDING -> PAID via the webhook; everything past that is fulfilment.
 const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
@@ -205,7 +212,7 @@ export class OrderService {
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
-        include: ORDER_INCLUDE,
+        include: ADMIN_ORDER_INCLUDE,
       }),
       this.prisma.order.count({ where }),
     ]);
@@ -231,7 +238,7 @@ export class OrderService {
     return this.prisma.order.update({
       where: { id: orderId },
       data: { status },
-      include: ORDER_INCLUDE,
+      include: ADMIN_ORDER_INCLUDE,
     });
   }
 
