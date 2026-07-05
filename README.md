@@ -90,7 +90,8 @@ as those milestones land.
   - [x] Product media upload (MinIO presigned uploads, image management)
   - [x] Categories (nested tree CRUD, re-parent with cycle guard)
   - [x] Orders (list, status filter, detail view, lifecycle transitions)
-  - [ ] Coupons · reviews · users · dashboard
+  - [x] Coupons (discount-code CRUD, usage/expiry state, delete guard)
+  - [ ] Reviews · users · dashboard
 - [ ] **M10** — Flutter app (full customer flow)
 - [ ] **M11** — Internationalization (i18n)
 - [ ] **M12** — Push notifications (FCM)
