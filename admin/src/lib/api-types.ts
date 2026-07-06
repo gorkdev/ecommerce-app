@@ -181,3 +181,28 @@ export interface CouponInput {
   expiresAt?: string | null;
   isActive?: boolean;
 }
+
+export interface ReviewProductRef {
+  id: string;
+  slug: string;
+  name: string;
+}
+
+// Admin review rows carry the author's email (customer-facing payloads never do)
+// so moderators can identify who wrote a flagged review.
+export interface ReviewAuthor {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface AdminReview {
+  id: string;
+  productId: string;
+  userId: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  product: ReviewProductRef;
+  user: ReviewAuthor;
+}

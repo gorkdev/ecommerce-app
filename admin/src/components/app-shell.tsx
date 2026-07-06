@@ -32,7 +32,7 @@ const NAV: NavItem[] = [
   { href: "/categories", label: "Categories", icon: Tags, enabled: true },
   { href: "/orders", label: "Orders", icon: ShoppingCart, enabled: true },
   { href: "/coupons", label: "Coupons", icon: Ticket, enabled: true },
-  { href: "/reviews", label: "Reviews", icon: Star, enabled: false },
+  { href: "/reviews", label: "Reviews", icon: Star, enabled: true },
   { href: "/users", label: "Users", icon: Users, enabled: false },
 ];
 
