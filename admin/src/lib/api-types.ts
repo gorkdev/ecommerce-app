@@ -206,3 +206,25 @@ export interface AdminReview {
   product: ReviewProductRef;
   user: ReviewAuthor;
 }
+
+export interface AdminUserListItem {
+  id: string;
+  email: string;
+  name: string;
+  role: Role;
+  createdAt: string;
+  updatedAt: string;
+  _count: { orders: number; reviews: number };
+}
+
+export interface AdminUserOrderRef {
+  id: string;
+  status: OrderStatus;
+  total: string;
+  currency: string;
+  createdAt: string;
+}
+
+export interface AdminUserDetail extends AdminUserListItem {
+  orders: AdminUserOrderRef[];
+}
