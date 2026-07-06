@@ -92,7 +92,8 @@ as those milestones land.
   - [x] Orders (list, status filter, detail view, lifecycle transitions)
   - [x] Coupons (discount-code CRUD, usage/expiry state, delete guard)
   - [x] Reviews (moderation list with ratings, remove policy-violating reviews)
-  - [ ] Users · dashboard
+  - [x] Users (list, search, role filter, detail view, role management)
+  - [ ] Dashboard
 - [ ] **M10** — Flutter app (full customer flow)
 - [ ] **M11** — Internationalization (i18n)
 - [ ] **M12** — Push notifications (FCM)
