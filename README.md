@@ -91,7 +91,8 @@ as those milestones land.
   - [x] Categories (nested tree CRUD, re-parent with cycle guard)
   - [x] Orders (list, status filter, detail view, lifecycle transitions)
   - [x] Coupons (discount-code CRUD, usage/expiry state, delete guard)
-  - [ ] Reviews · users · dashboard
+  - [x] Reviews (moderation list with ratings, remove policy-violating reviews)
+  - [ ] Users · dashboard
 - [ ] **M10** — Flutter app (full customer flow)
 - [ ] **M11** — Internationalization (i18n)
 - [ ] **M12** — Push notifications (FCM)
