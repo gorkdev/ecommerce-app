@@ -228,3 +228,36 @@ export interface AdminUserOrderRef {
 export interface AdminUserDetail extends AdminUserListItem {
   orders: AdminUserOrderRef[];
 }
+
+// Dashboard overview (GET /admin/stats).
+export interface DashboardRecentOrder {
+  id: string;
+  status: OrderStatus;
+  total: string;
+  currency: string;
+  createdAt: string;
+  user: OrderCustomer | null;
+}
+
+export interface DashboardLowStockProduct {
+  id: string;
+  slug: string;
+  name: string;
+  stock: number;
+  price: string;
+  currency: string;
+}
+
+export interface DashboardStats {
+  revenue: { total: string; currency: string };
+  counts: {
+    orders: number;
+    pendingOrders: number;
+    users: number;
+    products: number;
+    lowStock: number;
+  };
+  ordersByStatus: Record<OrderStatus, number>;
+  recentOrders: DashboardRecentOrder[];
+  lowStockProducts: DashboardLowStockProduct[];
+}

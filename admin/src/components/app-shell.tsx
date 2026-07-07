@@ -27,7 +27,7 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, enabled: false },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, enabled: true },
   { href: "/products", label: "Products", icon: Package, enabled: true },
   { href: "/categories", label: "Categories", icon: Tags, enabled: true },
   { href: "/orders", label: "Orders", icon: ShoppingCart, enabled: true },
