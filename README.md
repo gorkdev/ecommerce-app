@@ -85,7 +85,7 @@ as those milestones land.
 - [x] **M6** — Orders + Stripe checkout + webhooks — unit + e2e tested
 - [x] **M7** — Reviews & ratings (verified-buyer reviews, rating summary, admin moderation) — unit + e2e tested
 - [x] **M8** — Coupons / discounts (admin CRUD, cart preview, atomic checkout redemption) — unit + e2e tested
-- [ ] **M9** — Admin panel UI (dashboard, products, orders, users) — _in progress_
+- [x] **M9** — Admin panel UI (dashboard, products, orders, users) — unit + e2e tested
   - [x] Foundation: Next.js 16 + shadcn/ui, JWT admin login, protected shell, Products CRUD
   - [x] Product media upload (MinIO presigned uploads, image management)
   - [x] Categories (nested tree CRUD, re-parent with cycle guard)
@@ -93,7 +93,7 @@ as those milestones land.
   - [x] Coupons (discount-code CRUD, usage/expiry state, delete guard)
   - [x] Reviews (moderation list with ratings, remove policy-violating reviews)
   - [x] Users (list, search, role filter, detail view, role management)
-  - [ ] Dashboard
+  - [x] Dashboard (revenue/orders/customers/low-stock KPIs, order pipeline, recent activity)
 - [ ] **M10** — Flutter app (full customer flow)
 - [ ] **M11** — Internationalization (i18n)
 - [ ] **M12** — Push notifications (FCM)
