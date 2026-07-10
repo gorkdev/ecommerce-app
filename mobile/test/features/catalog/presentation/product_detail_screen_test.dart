@@ -1,13 +1,28 @@
 import 'package:ecommerce_app/core/network/api_exception.dart';
+import 'package:ecommerce_app/features/cart/data/cart_repository.dart';
+import 'package:ecommerce_app/features/cart/domain/cart.dart';
 import 'package:ecommerce_app/features/catalog/data/catalog_repository.dart';
 import 'package:ecommerce_app/features/catalog/domain/product.dart';
+import 'package:ecommerce_app/features/catalog/domain/product_summary.dart';
 import 'package:ecommerce_app/features/catalog/presentation/product_detail_screen.dart';
+import 'package:ecommerce_app/features/favorites/data/favorites_repository.dart';
+import 'package:ecommerce_app/features/favorites/domain/favorite.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockCatalogRepository extends Mock implements CatalogRepository {}
+
+class MockCartRepository extends Mock implements CartRepository {}
+
+class MockFavoritesRepository extends Mock implements FavoritesRepository {}
+
+const Cart _emptyCart = Cart(
+  id: 'cart_1',
+  items: <CartItem>[],
+  summary: CartSummary(itemCount: 0, subtotal: '0.00', currency: 'TRY'),
+);
 
 const Product _headphones = Product(
   id: 'prd_1',
@@ -24,8 +39,18 @@ const Product _headphones = Product(
 
 void main() {
   late MockCatalogRepository repository;
+  late MockCartRepository cartRepository;
+  late MockFavoritesRepository favoritesRepository;
 
-  setUp(() => repository = MockCatalogRepository());
+  setUp(() {
+    repository = MockCatalogRepository();
+    cartRepository = MockCartRepository();
+    when(() => cartRepository.fetchCart()).thenAnswer((_) async => _emptyCart);
+    favoritesRepository = MockFavoritesRepository();
+    when(
+      () => favoritesRepository.list(),
+    ).thenAnswer((_) async => const <Favorite>[]);
+  });
 
   Future<void> pumpDetail(WidgetTester tester) async {
     // A portrait surface, like a real phone. On the default 800x600 test
@@ -41,7 +66,11 @@ void main() {
         // pumpAndSettle's fake clock fires the retry timers and the error
         // states under test heal themselves mid-test.
         retry: (int retryCount, Object error) => null,
-        overrides: [catalogRepositoryProvider.overrideWithValue(repository)],
+        overrides: [
+          catalogRepositoryProvider.overrideWithValue(repository),
+          cartRepositoryProvider.overrideWithValue(cartRepository),
+          favoritesRepositoryProvider.overrideWithValue(favoritesRepository),
+        ],
         child: const MaterialApp(
           home: ProductDetailScreen(slug: 'wireless-headphones'),
         ),
@@ -99,7 +128,101 @@ void main() {
 
     await pumpDetail(tester);
 
-    expect(find.text('Out of stock'), findsOneWidget);
+    // Once in the stock row, once on the disabled cart button.
+    expect(find.text('Out of stock'), findsNWidgets(2));
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNull,
+    );
+  });
+
+  testWidgets('adds the product to the cart from the bottom bar', (
+    WidgetTester tester,
+  ) async {
+    when(
+      () => repository.fetchProduct('wireless-headphones'),
+    ).thenAnswer((_) async => _headphones);
+    when(
+      () => cartRepository.addItem(
+        productId: any(named: 'productId'),
+        quantity: any(named: 'quantity'),
+      ),
+    ).thenAnswer((_) async => _emptyCart);
+
+    await pumpDetail(tester);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Add to cart'));
+    await tester.pumpAndSettle();
+
+    verify(
+      () => cartRepository.addItem(productId: 'prd_1', quantity: 1),
+    ).called(1);
+    expect(find.text('Added to cart'), findsOneWidget);
+  });
+
+  testWidgets('surfaces the stock-limit message when adding fails', (
+    WidgetTester tester,
+  ) async {
+    when(
+      () => repository.fetchProduct('wireless-headphones'),
+    ).thenAnswer((_) async => _headphones);
+    when(
+      () => cartRepository.addItem(
+        productId: any(named: 'productId'),
+        quantity: any(named: 'quantity'),
+      ),
+    ).thenThrow(
+      const ApiStatusException(
+        400,
+        'Only 3 unit(s) of this product are in stock',
+      ),
+    );
+
+    await pumpDetail(tester);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Add to cart'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Only 3 unit(s) of this product are in stock'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('the app bar heart toggles the favorite', (
+    WidgetTester tester,
+  ) async {
+    when(
+      () => repository.fetchProduct('wireless-headphones'),
+    ).thenAnswer((_) async => _headphones);
+    when(() => favoritesRepository.add('prd_1')).thenAnswer(
+      (_) async => const <Favorite>[
+        Favorite(
+          id: 'fav_1',
+          productId: 'prd_1',
+          product: ProductSummary(
+            id: 'prd_1',
+            slug: 'wireless-headphones',
+            name: 'Wireless Headphones',
+            price: '75.00',
+            currency: 'TRY',
+            stock: 3,
+            isActive: true,
+            imageUrl: null,
+          ),
+        ),
+      ],
+    );
+
+    await pumpDetail(tester);
+
+    expect(find.byIcon(Icons.favorite_outline), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.favorite_outline));
+    await tester.pumpAndSettle();
+
+    verify(() => favoritesRepository.add('prd_1')).called(1);
+    expect(find.byIcon(Icons.favorite), findsOneWidget);
   });
 
   testWidgets('a vanished product reads as gone, with no retry', (

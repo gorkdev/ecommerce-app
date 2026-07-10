@@ -14,7 +14,8 @@ Milestone **M10** is in progress, slice by slice.
       secure token storage, auth-gated router, sign-in / sign-up screens
 - [x] Catalog — product grid with infinite scroll, debounced search, category
       chips, price/sort filters, product detail with image gallery
-- [ ] Cart & favorites
+- [x] Cart & favorites — server-truth cart with quantity steppers and badge,
+      optimistic favorite hearts on cards and the detail screen
 - [ ] Stripe checkout
 - [ ] Orders & tracking
 - [ ] Profile & addresses

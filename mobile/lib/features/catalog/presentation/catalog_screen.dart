@@ -2,15 +2,22 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../core/network/api_exception.dart';
+import '../../../shared/widgets/empty_view.dart';
+import '../../../shared/widgets/error_view.dart';
 import '../../auth/application/auth_controller.dart';
+import '../../cart/application/cart_controller.dart';
+import '../../cart/presentation/cart_screen.dart';
+import '../../favorites/presentation/favorites_screen.dart';
 import '../application/catalog_providers.dart';
 import '../application/product_list_controller.dart';
 import '../domain/category.dart';
 import '../domain/product_query.dart';
 import 'widgets/price_filter_sheet.dart';
 import 'widgets/product_card.dart';
+
+enum _CatalogMenuAction { favorites, signOut }
 
 /// The storefront landing screen: search, filters and the product grid.
 class CatalogScreen extends ConsumerStatefulWidget {
@@ -127,9 +134,31 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
             ),
           ),
           IconButton(
-            tooltip: 'Sign out',
-            icon: const Icon(Icons.logout),
-            onPressed: () => ref.read(authControllerProvider.notifier).logout(),
+            tooltip: 'Cart',
+            onPressed: () => context.push(CartScreen.path),
+            icon: Badge(
+              label: Text('${ref.watch(cartItemCountProvider)}'),
+              isLabelVisible: ref.watch(cartItemCountProvider) > 0,
+              child: const Icon(Icons.shopping_cart_outlined),
+            ),
+          ),
+          PopupMenuButton<_CatalogMenuAction>(
+            onSelected: (_CatalogMenuAction action) => switch (action) {
+              _CatalogMenuAction.favorites =>
+                context.push(FavoritesScreen.path),
+              _CatalogMenuAction.signOut =>
+                ref.read(authControllerProvider.notifier).logout(),
+            },
+            itemBuilder: (_) => <PopupMenuEntry<_CatalogMenuAction>>[
+              const PopupMenuItem<_CatalogMenuAction>(
+                value: _CatalogMenuAction.favorites,
+                child: Text('Favorites'),
+              ),
+              const PopupMenuItem<_CatalogMenuAction>(
+                value: _CatalogMenuAction.signOut,
+                child: Text('Sign out'),
+              ),
+            ],
           ),
         ],
       ),
@@ -185,7 +214,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
 
     if (data == null) {
       if (listState.hasError) {
-        return _CatalogError(
+        return ErrorView(
           error: listState.error,
           onRetry: () => _controller.reload(),
         );
@@ -194,7 +223,11 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
     }
 
     if (data.products.isEmpty) {
-      return const _EmptyCatalog();
+      return const EmptyView(
+        icon: Icons.search_off_outlined,
+        title: 'No products found',
+        subtitle: 'Try a different search or clear the filters.',
+      );
     }
 
     return RefreshIndicator(
@@ -279,78 +312,3 @@ class _CategoryChips extends ConsumerWidget {
   }
 }
 
-class _EmptyCatalog extends StatelessWidget {
-  const _EmptyCatalog();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(
-              Icons.search_off_outlined,
-              size: 48,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: 12),
-            Text('No products found', style: theme.textTheme.titleMedium),
-            const SizedBox(height: 4),
-            Text(
-              'Try a different search or clear the filters.',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CatalogError extends StatelessWidget {
-  const _CatalogError({required this.error, required this.onRetry});
-
-  final Object? error;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final String message = error is ApiException
-        ? (error! as ApiException).message
-        : 'Something went wrong.';
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(
-              Icons.wifi_off_outlined,
-              size: 48,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 16),
-            FilledButton.tonal(
-              onPressed: onRetry,
-              child: const Text('Try again'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

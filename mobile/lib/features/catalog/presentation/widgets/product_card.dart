@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/config/app_config.dart';
+import '../../../../core/network/api_exception.dart';
+import '../../../favorites/application/favorites_controller.dart';
 import '../../domain/product.dart';
+import '../../domain/product_summary.dart';
 import '../product_detail_screen.dart';
 import 'product_price.dart';
 
-/// One tile of the catalog grid.
+/// One tile of the catalog grid, with a favorite heart over the thumbnail.
 class ProductCard extends StatelessWidget {
   const ProductCard(this.product, {super.key});
 
@@ -23,7 +27,19 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Expanded(child: _ProductThumbnail(product)),
+            Expanded(
+              child: Stack(
+                fit: StackFit.expand,
+                children: <Widget>[
+                  _ProductThumbnail(product),
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: _FavoriteButton(product),
+                  ),
+                ],
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.all(10),
               child: Column(
@@ -53,6 +69,50 @@ class ProductCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _FavoriteButton extends ConsumerWidget {
+  const _FavoriteButton(this.product);
+
+  final Product product;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final bool saved = ref
+        .watch(favoriteProductIdsProvider)
+        .contains(product.id);
+
+    return Material(
+      color: theme.colorScheme.surface.withValues(alpha: 0.85),
+      shape: const CircleBorder(),
+      child: IconButton(
+        visualDensity: VisualDensity.compact,
+        iconSize: 20,
+        tooltip: saved ? 'Remove from favorites' : 'Add to favorites',
+        icon: Icon(
+          saved ? Icons.favorite : Icons.favorite_outline,
+          color: saved
+              ? theme.colorScheme.error
+              : theme.colorScheme.onSurfaceVariant,
+        ),
+        onPressed: () => _toggle(context, ref),
+      ),
+    );
+  }
+
+  Future<void> _toggle(BuildContext context, WidgetRef ref) async {
+    try {
+      await ref
+          .read(favoritesControllerProvider.notifier)
+          .toggle(ProductSummary.of(product));
+    } on ApiException catch (error) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+    }
   }
 }
 

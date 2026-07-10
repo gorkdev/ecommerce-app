@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/config/app_config.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../shared/widgets/error_view.dart';
+import '../../cart/application/cart_controller.dart';
+import '../../cart/presentation/cart_screen.dart';
+import '../../favorites/application/favorites_controller.dart';
 import '../application/catalog_providers.dart';
 import '../domain/product.dart';
+import '../domain/product_summary.dart';
 import 'widgets/product_price.dart';
 
 /// Full product page: gallery, pricing, stock and description.
@@ -30,15 +36,30 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     final AsyncValue<Product> detail = ref.watch(
       productDetailProvider(widget.slug),
     );
+    final Product? product = detail.value;
 
     return Scaffold(
-      appBar: AppBar(title: Text(detail.value?.name ?? 'Product')),
+      appBar: AppBar(
+        title: Text(product?.name ?? 'Product'),
+        actions: <Widget>[
+          if (product != null) _FavoriteAction(product),
+        ],
+      ),
+      bottomNavigationBar: product == null ? null : _AddToCartBar(product),
       body: detail.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (Object error, _) => _DetailError(
-          error: error,
-          onRetry: () => ref.invalidate(productDetailProvider(widget.slug)),
-        ),
+        error: (Object error, _) {
+          final bool gone =
+              error is ApiStatusException && error.isNotFound;
+          return ErrorView(
+            error: error,
+            icon: gone ? Icons.inventory_2_outlined : Icons.wifi_off_outlined,
+            message: gone ? 'This product is no longer available.' : null,
+            onRetry: gone
+                ? null
+                : () => ref.invalidate(productDetailProvider(widget.slug)),
+          );
+        },
         data: (Product product) => ListView(
           children: <Widget>[
             _Gallery(
@@ -215,48 +236,99 @@ class _Gallery extends StatelessWidget {
   }
 }
 
-class _DetailError extends StatelessWidget {
-  const _DetailError({required this.error, required this.onRetry});
+class _FavoriteAction extends ConsumerWidget {
+  const _FavoriteAction(this.product);
 
-  final Object error;
-  final VoidCallback onRetry;
+  final Product product;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final bool saved = ref
+        .watch(favoriteProductIdsProvider)
+        .contains(product.id);
+
+    return IconButton(
+      tooltip: saved ? 'Remove from favorites' : 'Add to favorites',
+      icon: Icon(
+        saved ? Icons.favorite : Icons.favorite_outline,
+        color: saved ? theme.colorScheme.error : null,
+      ),
+      onPressed: () => _toggle(context, ref),
+    );
+  }
+
+  Future<void> _toggle(BuildContext context, WidgetRef ref) async {
+    try {
+      await ref
+          .read(favoritesControllerProvider.notifier)
+          .toggle(ProductSummary.of(product));
+    } on ApiException catch (error) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+    }
+  }
+}
+
+/// Sticky "Add to cart" bar. Adding always puts one unit in; quantities are
+/// adjusted in the cart itself.
+class _AddToCartBar extends ConsumerStatefulWidget {
+  const _AddToCartBar(this.product);
+
+  final Product product;
+
+  @override
+  ConsumerState<_AddToCartBar> createState() => _AddToCartBarState();
+}
+
+class _AddToCartBarState extends ConsumerState<_AddToCartBar> {
+  bool _busy = false;
+
+  Future<void> _add() async {
+    setState(() => _busy = true);
+    try {
+      await ref.read(cartControllerProvider.notifier).add(widget.product.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Added to cart'),
+          action: SnackBarAction(
+            label: 'View cart',
+            onPressed: () => context.push(CartScreen.path),
+          ),
+        ),
+      );
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final bool gone =
-        error is ApiStatusException && (error as ApiStatusException).isNotFound;
-    final String message = gone
-        ? 'This product is no longer available.'
-        : error is ApiException
-        ? (error as ApiException).message
-        : 'Something went wrong.';
+    final bool inStock = widget.product.inStock;
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(
-              gone ? Icons.inventory_2_outlined : Icons.wifi_off_outlined,
-              size: 48,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium,
-            ),
-            if (!gone) ...<Widget>[
-              const SizedBox(height: 16),
-              FilledButton.tonal(
-                onPressed: onRetry,
-                child: const Text('Try again'),
-              ),
-            ],
-          ],
+    return Material(
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          child: FilledButton(
+            onPressed: inStock && !_busy ? _add : null,
+            child: _busy
+                ? const SizedBox.square(
+                    dimension: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(inStock ? 'Add to cart' : 'Out of stock'),
+          ),
         ),
       ),
     );

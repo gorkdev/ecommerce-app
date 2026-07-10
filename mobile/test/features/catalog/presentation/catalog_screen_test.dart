@@ -1,16 +1,30 @@
 import 'package:ecommerce_app/core/network/api_exception.dart';
+import 'package:ecommerce_app/features/cart/data/cart_repository.dart';
+import 'package:ecommerce_app/features/cart/domain/cart.dart';
 import 'package:ecommerce_app/features/catalog/data/catalog_repository.dart';
 import 'package:ecommerce_app/features/catalog/domain/category.dart';
 import 'package:ecommerce_app/features/catalog/domain/paginated.dart';
 import 'package:ecommerce_app/features/catalog/domain/product.dart';
 import 'package:ecommerce_app/features/catalog/domain/product_query.dart';
 import 'package:ecommerce_app/features/catalog/presentation/catalog_screen.dart';
+import 'package:ecommerce_app/features/favorites/data/favorites_repository.dart';
+import 'package:ecommerce_app/features/favorites/domain/favorite.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockCatalogRepository extends Mock implements CatalogRepository {}
+
+class MockCartRepository extends Mock implements CartRepository {}
+
+class MockFavoritesRepository extends Mock implements FavoritesRepository {}
+
+const Cart _emptyCart = Cart(
+  id: 'cart_1',
+  items: <CartItem>[],
+  summary: CartSummary(itemCount: 0, subtotal: '0.00', currency: 'TRY'),
+);
 
 Product _product(String id, String name) => Product(
   id: id,
@@ -45,6 +59,8 @@ const List<Category> _categories = <Category>[
 
 void main() {
   late MockCatalogRepository repository;
+  late MockCartRepository cartRepository;
+  late MockFavoritesRepository favoritesRepository;
 
   setUpAll(() => registerFallbackValue(const ProductQuery()));
 
@@ -53,6 +69,14 @@ void main() {
     when(
       () => repository.fetchCategories(),
     ).thenAnswer((_) async => _categories);
+
+    // The app bar badge and the card hearts pull these in.
+    cartRepository = MockCartRepository();
+    when(() => cartRepository.fetchCart()).thenAnswer((_) async => _emptyCart);
+    favoritesRepository = MockFavoritesRepository();
+    when(
+      () => favoritesRepository.list(),
+    ).thenAnswer((_) async => const <Favorite>[]);
   });
 
   Future<void> pumpCatalog(WidgetTester tester) async {
@@ -62,7 +86,11 @@ void main() {
         // pumpAndSettle's fake clock fires the retry timers and the error
         // states under test heal themselves mid-test.
         retry: (int retryCount, Object error) => null,
-        overrides: [catalogRepositoryProvider.overrideWithValue(repository)],
+        overrides: [
+          catalogRepositoryProvider.overrideWithValue(repository),
+          cartRepositoryProvider.overrideWithValue(cartRepository),
+          favoritesRepositoryProvider.overrideWithValue(favoritesRepository),
+        ],
         child: const MaterialApp(home: CatalogScreen()),
       ),
     );
