@@ -6,7 +6,8 @@ import '../../features/auth/application/auth_controller.dart';
 import '../../features/auth/domain/auth_user.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
-import '../../features/home/presentation/home_screen.dart';
+import '../../features/catalog/presentation/catalog_screen.dart';
+import '../../features/catalog/presentation/product_detail_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
 
 const Set<String> _publicRoutes = <String>{
@@ -46,7 +47,7 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((ref) {
 
       if (!signedIn) return onPublicRoute ? null : LoginScreen.path;
       if (onPublicRoute || location == SplashScreen.path) {
-        return HomeScreen.path;
+        return CatalogScreen.path;
       }
       return null;
     },
@@ -57,7 +58,12 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((ref) {
         path: RegisterScreen.path,
         builder: (_, _) => const RegisterScreen(),
       ),
-      GoRoute(path: HomeScreen.path, builder: (_, _) => const HomeScreen()),
+      GoRoute(path: CatalogScreen.path, builder: (_, _) => const CatalogScreen()),
+      GoRoute(
+        path: ProductDetailScreen.path,
+        builder: (_, GoRouterState state) =>
+            ProductDetailScreen(slug: state.pathParameters['slug']!),
+      ),
     ],
   );
 

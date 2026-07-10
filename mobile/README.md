@@ -12,7 +12,8 @@ Milestone **M10** is in progress, slice by slice.
 
 - [x] Foundation + auth — HTTP client with a self-refreshing JWT interceptor,
       secure token storage, auth-gated router, sign-in / sign-up screens
-- [ ] Catalog (list, search, filter, product detail)
+- [x] Catalog — product grid with infinite scroll, debounced search, category
+      chips, price/sort filters, product detail with image gallery
 - [ ] Cart & favorites
 - [ ] Stripe checkout
 - [ ] Orders & tracking
@@ -34,6 +35,10 @@ State lives in Riverpod providers declared next to the class they expose. No
 code generation: providers and `fromJson` factories are written by hand, because
 `riverpod_lint` / `riverpod_generator` still pin `riverpod_annotation` 2.x and
 cannot resolve against Riverpod 3.
+
+Riverpod 3's automatic provider retry is disabled at the root `ProviderScope`:
+every failing surface has explicit retry UX instead (retry buttons,
+pull-to-refresh), and background retries would re-hammer a struggling API.
 
 ## Running
 

@@ -5,5 +5,14 @@ import 'app.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: EcommerceApp()));
+  runApp(
+    ProviderScope(
+      // Riverpod 3 silently retries failed providers with a backoff by
+      // default. Every failing surface here has explicit retry UX (retry
+      // buttons, pull-to-refresh), and a background retry would re-hammer a
+      // struggling API and make failures look nondeterministic — so it is off.
+      retry: (int retryCount, Object error) => null,
+      child: const EcommerceApp(),
+    ),
+  );
 }
