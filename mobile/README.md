@@ -20,7 +20,8 @@ Milestone **M10** is in progress, slice by slice.
       payment sheet confirmation, retryable pending payments
 - [x] Orders & tracking — order history with pull-to-refresh, detail view
       with a fulfilment timeline and the totals exactly as charged
-- [ ] Profile & addresses
+- [x] Profile & addresses — account hub, address book with a single
+      server-kept default, delivery address picker at checkout
 - [ ] Reviews & ratings
 
 ## Layout

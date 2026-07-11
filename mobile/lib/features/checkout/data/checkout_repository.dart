@@ -16,11 +16,16 @@ class CheckoutRepository {
 
   /// Turns the server-side cart into a PENDING order (reserving stock and
   /// emptying the cart) and returns the PaymentIntent client secret.
-  Future<CheckoutSession> placeOrder({String? couponCode}) {
+  /// [addressId] must belong to the caller; both fields stay off the wire
+  /// when unused.
+  Future<CheckoutSession> placeOrder({String? couponCode, String? addressId}) {
     return _guard(() async {
       final response = await _dio.post<Map<String, dynamic>>(
         '/orders/checkout',
-        data: <String, Object>{'couponCode': ?couponCode},
+        data: <String, Object>{
+          'couponCode': ?couponCode,
+          'addressId': ?addressId,
+        },
       );
       return CheckoutSession.fromJson(_requireBody(response));
     });

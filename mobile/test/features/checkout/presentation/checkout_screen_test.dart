@@ -1,4 +1,6 @@
 import 'package:ecommerce_app/core/network/api_exception.dart';
+import 'package:ecommerce_app/features/addresses/data/addresses_repository.dart';
+import 'package:ecommerce_app/features/addresses/domain/address.dart';
 import 'package:ecommerce_app/features/cart/data/cart_repository.dart';
 import 'package:ecommerce_app/features/cart/domain/cart.dart';
 import 'package:ecommerce_app/features/catalog/domain/product_summary.dart';
@@ -18,6 +20,21 @@ class MockCartRepository extends Mock implements CartRepository {}
 class MockCheckoutRepository extends Mock implements CheckoutRepository {}
 
 class MockPaymentSheetService extends Mock implements PaymentSheetService {}
+
+class MockAddressesRepository extends Mock implements AddressesRepository {}
+
+const Address _home = Address(
+  id: 'adr_1',
+  fullName: 'Ada Lovelace',
+  phone: '+905551112233',
+  line1: 'Analytical Engine St. 42',
+  line2: null,
+  city: 'Istanbul',
+  district: 'Kadikoy',
+  postalCode: '34710',
+  country: 'TR',
+  isDefault: true,
+);
 
 const ProductSummary _mug = ProductSummary(
   id: 'prd_1',
@@ -81,12 +98,17 @@ void main() {
   late MockCartRepository cartRepository;
   late MockCheckoutRepository checkoutRepository;
   late MockPaymentSheetService sheet;
+  late MockAddressesRepository addressesRepository;
 
   setUp(() {
     cartRepository = MockCartRepository();
     checkoutRepository = MockCheckoutRepository();
     sheet = MockPaymentSheetService();
+    addressesRepository = MockAddressesRepository();
     when(() => cartRepository.fetchCart()).thenAnswer((_) async => _fullCart);
+    when(
+      () => addressesRepository.list(),
+    ).thenAnswer((_) async => const <Address>[]);
   });
 
   Future<void> pumpCheckout(WidgetTester tester) async {
@@ -103,6 +125,7 @@ void main() {
           cartRepositoryProvider.overrideWithValue(cartRepository),
           checkoutRepositoryProvider.overrideWithValue(checkoutRepository),
           paymentSheetServiceProvider.overrideWithValue(sheet),
+          addressesRepositoryProvider.overrideWithValue(addressesRepository),
         ],
         child: const MaterialApp(home: CheckoutScreen()),
       ),
@@ -171,6 +194,7 @@ void main() {
     when(
       () => checkoutRepository.placeOrder(
         couponCode: any(named: 'couponCode'),
+        addressId: any(named: 'addressId'),
       ),
     ).thenAnswer(
       (_) async => CheckoutSession(order: _order(), clientSecret: 'secret_1'),
@@ -184,7 +208,9 @@ void main() {
     await tester.tap(find.text('Pay ₺114.80'));
     await tester.pumpAndSettle();
 
-    verify(() => checkoutRepository.placeOrder(couponCode: null)).called(1);
+    verify(
+      () => checkoutRepository.placeOrder(couponCode: null, addressId: null),
+    ).called(1);
     verify(() => sheet.present(clientSecret: 'secret_1')).called(1);
     expect(find.text('Payment received'), findsOneWidget);
     expect(find.textContaining('Order #ORD_1'), findsOneWidget);
@@ -198,6 +224,7 @@ void main() {
     when(
       () => checkoutRepository.placeOrder(
         couponCode: any(named: 'couponCode'),
+        addressId: any(named: 'addressId'),
       ),
     ).thenAnswer(
       (_) async => CheckoutSession(order: _order(), clientSecret: 'secret_1'),
@@ -222,7 +249,10 @@ void main() {
     await tester.pumpAndSettle();
 
     verify(
-      () => checkoutRepository.placeOrder(couponCode: any(named: 'couponCode')),
+      () => checkoutRepository.placeOrder(
+        couponCode: any(named: 'couponCode'),
+        addressId: any(named: 'addressId'),
+      ),
     ).called(1);
     verify(() => sheet.present(clientSecret: 'secret_1')).called(2);
     expect(find.text('Payment received'), findsOneWidget);
@@ -234,6 +264,7 @@ void main() {
     when(
       () => checkoutRepository.placeOrder(
         couponCode: any(named: 'couponCode'),
+        addressId: any(named: 'addressId'),
       ),
     ).thenThrow(
       const ApiStatusException(400, 'Not enough stock for "Ceramic Mug"'),
@@ -259,5 +290,48 @@ void main() {
 
     expect(find.text('Your cart is empty'), findsOneWidget);
     expect(find.textContaining('Pay'), findsNothing);
+  });
+
+  testWidgets('the default address is preselected and rides the order', (
+    WidgetTester tester,
+  ) async {
+    when(
+      () => addressesRepository.list(),
+    ).thenAnswer((_) async => const <Address>[_home]);
+    when(
+      () => checkoutRepository.placeOrder(
+        couponCode: any(named: 'couponCode'),
+        addressId: any(named: 'addressId'),
+      ),
+    ).thenAnswer(
+      (_) async => CheckoutSession(order: _order(), clientSecret: 'secret_1'),
+    );
+    when(
+      () => sheet.present(clientSecret: any(named: 'clientSecret')),
+    ).thenAnswer((_) async => PaymentSheetOutcome.completed);
+
+    await pumpCheckout(tester);
+
+    expect(find.text('Ada Lovelace'), findsOneWidget);
+    expect(find.text('Change'), findsOneWidget);
+
+    await tester.tap(find.text('Pay ₺114.80'));
+    await tester.pumpAndSettle();
+
+    verify(
+      () => checkoutRepository.placeOrder(
+        couponCode: null,
+        addressId: 'adr_1',
+      ),
+    ).called(1);
+  });
+
+  testWidgets('an empty address book invites adding one', (
+    WidgetTester tester,
+  ) async {
+    await pumpCheckout(tester);
+
+    expect(find.text('No delivery address yet.'), findsOneWidget);
+    expect(find.text('Add'), findsOneWidget);
   });
 }

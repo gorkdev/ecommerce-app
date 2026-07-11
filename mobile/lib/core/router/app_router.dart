@@ -2,6 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/addresses/domain/address.dart';
+import '../../features/addresses/presentation/address_form_screen.dart';
+import '../../features/addresses/presentation/addresses_screen.dart';
 import '../../features/auth/application/auth_controller.dart';
 import '../../features/auth/domain/auth_user.dart';
 import '../../features/auth/presentation/login_screen.dart';
@@ -13,6 +16,7 @@ import '../../features/checkout/presentation/checkout_screen.dart';
 import '../../features/favorites/presentation/favorites_screen.dart';
 import '../../features/orders/presentation/order_detail_screen.dart';
 import '../../features/orders/presentation/orders_screen.dart';
+import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
 
 const Set<String> _publicRoutes = <String>{
@@ -77,6 +81,19 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: FavoritesScreen.path,
         builder: (_, _) => const FavoritesScreen(),
+      ),
+      GoRoute(
+        path: ProfileScreen.path,
+        builder: (_, _) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: AddressesScreen.path,
+        builder: (_, _) => const AddressesScreen(),
+      ),
+      GoRoute(
+        path: AddressFormScreen.path,
+        builder: (_, GoRouterState state) =>
+            AddressFormScreen(initial: state.extra as Address?),
       ),
       GoRoute(path: OrdersScreen.path, builder: (_, _) => const OrdersScreen()),
       GoRoute(

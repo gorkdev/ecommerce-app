@@ -11,6 +11,7 @@ import '../../cart/application/cart_controller.dart';
 import '../../cart/presentation/cart_screen.dart';
 import '../../favorites/presentation/favorites_screen.dart';
 import '../../orders/presentation/orders_screen.dart';
+import '../../profile/presentation/profile_screen.dart';
 import '../application/catalog_providers.dart';
 import '../application/product_list_controller.dart';
 import '../domain/category.dart';
@@ -18,7 +19,7 @@ import '../domain/product_query.dart';
 import 'widgets/price_filter_sheet.dart';
 import 'widgets/product_card.dart';
 
-enum _CatalogMenuAction { orders, favorites, signOut }
+enum _CatalogMenuAction { profile, orders, favorites, signOut }
 
 /// The storefront landing screen: search, filters and the product grid.
 class CatalogScreen extends ConsumerStatefulWidget {
@@ -145,6 +146,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
           ),
           PopupMenuButton<_CatalogMenuAction>(
             onSelected: (_CatalogMenuAction action) => switch (action) {
+              _CatalogMenuAction.profile => context.push(ProfileScreen.path),
               _CatalogMenuAction.orders => context.push(OrdersScreen.path),
               _CatalogMenuAction.favorites =>
                 context.push(FavoritesScreen.path),
@@ -152,6 +154,10 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                 ref.read(authControllerProvider.notifier).logout(),
             },
             itemBuilder: (_) => <PopupMenuEntry<_CatalogMenuAction>>[
+              const PopupMenuItem<_CatalogMenuAction>(
+                value: _CatalogMenuAction.profile,
+                child: Text('Profile'),
+              ),
               const PopupMenuItem<_CatalogMenuAction>(
                 value: _CatalogMenuAction.orders,
                 child: Text('My orders'),

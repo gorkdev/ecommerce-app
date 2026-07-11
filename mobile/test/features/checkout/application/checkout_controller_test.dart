@@ -141,7 +141,10 @@ void main() {
         (_) async => _quote,
       );
       when(
-        () => repository.placeOrder(couponCode: any(named: 'couponCode')),
+        () => repository.placeOrder(
+        couponCode: any(named: 'couponCode'),
+        addressId: any(named: 'addressId'),
+      ),
       ).thenAnswer((_) async => _session());
       when(
         () => sheet.present(clientSecret: any(named: 'clientSecret')),
@@ -157,7 +160,9 @@ void main() {
 
       await controller.payNow();
 
-      verify(() => repository.placeOrder(couponCode: 'SAVE10')).called(1);
+      verify(
+        () => repository.placeOrder(couponCode: 'SAVE10', addressId: null),
+      ).called(1);
       verify(() => sheet.present(clientSecret: 'secret_1')).called(1);
       final CheckoutState state = container.read(checkoutControllerProvider);
       expect((state as CheckoutSuccess).order.id, 'ord_1');
@@ -168,9 +173,33 @@ void main() {
     },
   );
 
+  test('payNow forwards the chosen delivery address', () async {
+    when(
+      () => repository.placeOrder(
+        couponCode: any(named: 'couponCode'),
+        addressId: any(named: 'addressId'),
+      ),
+    ).thenAnswer((_) async => _session());
+    when(
+      () => sheet.present(clientSecret: any(named: 'clientSecret')),
+    ).thenAnswer((_) async => PaymentSheetOutcome.completed);
+
+    final ProviderContainer container = makeContainer();
+    await container
+        .read(checkoutControllerProvider.notifier)
+        .payNow(addressId: 'a1');
+
+    verify(
+      () => repository.placeOrder(couponCode: null, addressId: 'a1'),
+    ).called(1);
+  });
+
   test('a cancelled sheet parks the flow as payment-pending', () async {
     when(
-      () => repository.placeOrder(couponCode: any(named: 'couponCode')),
+      () => repository.placeOrder(
+        couponCode: any(named: 'couponCode'),
+        addressId: any(named: 'addressId'),
+      ),
     ).thenAnswer((_) async => _session());
     when(
       () => sheet.present(clientSecret: any(named: 'clientSecret')),
@@ -186,7 +215,10 @@ void main() {
 
   test('retrying a pending payment reuses the intent, no new order', () async {
     when(
-      () => repository.placeOrder(couponCode: any(named: 'couponCode')),
+      () => repository.placeOrder(
+        couponCode: any(named: 'couponCode'),
+        addressId: any(named: 'addressId'),
+      ),
     ).thenAnswer((_) async => _session());
     final List<PaymentSheetOutcome> outcomes = <PaymentSheetOutcome>[
       PaymentSheetOutcome.cancelled,
@@ -204,7 +236,10 @@ void main() {
     await controller.payNow();
 
     verify(
-      () => repository.placeOrder(couponCode: any(named: 'couponCode')),
+      () => repository.placeOrder(
+        couponCode: any(named: 'couponCode'),
+        addressId: any(named: 'addressId'),
+      ),
     ).called(1);
     verify(() => sheet.present(clientSecret: 'secret_1')).called(2);
     expect(
@@ -215,7 +250,10 @@ void main() {
 
   test('a failed payment rethrows and stays pending', () async {
     when(
-      () => repository.placeOrder(couponCode: any(named: 'couponCode')),
+      () => repository.placeOrder(
+        couponCode: any(named: 'couponCode'),
+        addressId: any(named: 'addressId'),
+      ),
     ).thenAnswer((_) async => _session());
     when(
       () => sheet.present(clientSecret: any(named: 'clientSecret')),
@@ -242,7 +280,10 @@ void main() {
 
   test('a rejected checkout keeps the review state, sheet untouched', () async {
     when(
-      () => repository.placeOrder(couponCode: any(named: 'couponCode')),
+      () => repository.placeOrder(
+        couponCode: any(named: 'couponCode'),
+        addressId: any(named: 'addressId'),
+      ),
     ).thenThrow(const ApiStatusException(400, 'Cart is empty'));
 
     final ProviderContainer container = makeContainer();
@@ -258,7 +299,10 @@ void main() {
 
   test('payNow after success is a no-op', () async {
     when(
-      () => repository.placeOrder(couponCode: any(named: 'couponCode')),
+      () => repository.placeOrder(
+        couponCode: any(named: 'couponCode'),
+        addressId: any(named: 'addressId'),
+      ),
     ).thenAnswer((_) async => _session());
     when(
       () => sheet.present(clientSecret: any(named: 'clientSecret')),

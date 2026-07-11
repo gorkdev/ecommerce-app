@@ -62,10 +62,11 @@ final class CheckoutController extends Notifier<CheckoutState> {
   }
 
   /// Places the order (first call) or retries a pending payment, then
-  /// presents the payment sheet. `ApiException` / [PaymentException]
-  /// propagate to the caller for snackbars; the state always reflects how
-  /// far the flow actually got.
-  Future<void> payNow() async {
+  /// presents the payment sheet. [addressId] only matters for the first
+  /// call — a pending order already carries its address. `ApiException` /
+  /// [PaymentException] propagate to the caller for snackbars; the state
+  /// always reflects how far the flow actually got.
+  Future<void> payNow({String? addressId}) async {
     final CheckoutState current = state;
     final Order order;
     final String clientSecret;
@@ -73,7 +74,7 @@ final class CheckoutController extends Notifier<CheckoutState> {
       case CheckoutReview(:final CouponQuote? coupon):
         final CheckoutSession session = await ref
             .read(checkoutRepositoryProvider)
-            .placeOrder(couponCode: coupon?.code);
+            .placeOrder(couponCode: coupon?.code, addressId: addressId);
         // Checkout emptied the cart server-side; drop the cached copy so the
         // badge and the cart screen refetch instead of showing stale lines.
         ref.invalidate(cartControllerProvider);

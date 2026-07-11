@@ -6,6 +6,9 @@ import '../../../core/network/api_exception.dart';
 import '../../../shared/formatting/price_formatter.dart';
 import '../../../shared/widgets/empty_view.dart';
 import '../../../shared/widgets/error_view.dart';
+import '../../addresses/application/addresses_controller.dart';
+import '../../addresses/domain/address.dart';
+import '../../addresses/presentation/addresses_screen.dart';
 import '../../cart/application/cart_controller.dart';
 import '../../cart/domain/cart.dart';
 import '../../catalog/presentation/catalog_screen.dart';
@@ -53,6 +56,20 @@ class _ReviewViewState extends ConsumerState<_ReviewView> {
   bool _applyingCoupon = false;
   bool _paying = false;
 
+  /// The user's explicit pick; null means "use the default address".
+  String? _selectedAddressId;
+
+  /// Resolves the pick against the live list — a deleted selection falls
+  /// back to the default, and no addresses means none at all.
+  Address? _selectedAddress(List<Address> addresses) {
+    Address? fallback;
+    for (final Address address in addresses) {
+      if (address.id == _selectedAddressId) return address;
+      if (address.isDefault) fallback = address;
+    }
+    return fallback;
+  }
+
   @override
   void dispose() {
     _couponController.dispose();
@@ -91,12 +108,23 @@ class _ReviewViewState extends ConsumerState<_ReviewView> {
     final String total = coupon?.total ?? cart.summary.subtotal;
     final String currency = coupon?.currency ?? cart.summary.currency;
 
+    final List<Address> addresses =
+        ref.watch(addressesControllerProvider).value ?? const <Address>[];
+    final Address? deliverTo = _selectedAddress(addresses);
+
     return Column(
       children: <Widget>[
         Expanded(
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: <Widget>[
+              _DeliverToCard(
+                address: deliverTo,
+                onChange: addresses.isEmpty
+                    ? () => context.push(AddressesScreen.path)
+                    : () => _pickAddress(addresses, deliverTo),
+              ),
+              const Divider(height: 32),
               for (final CartItem item in cart.items) _OrderLine(item),
               const SizedBox(height: 8),
               _CouponSection(
@@ -158,10 +186,50 @@ class _ReviewViewState extends ConsumerState<_ReviewView> {
     }
   }
 
+  Future<void> _pickAddress(List<Address> addresses, Address? current) async {
+    final String? picked = await showModalBottomSheet<String>(
+      context: context,
+      builder: (BuildContext sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: <Widget>[
+            for (final Address address in addresses)
+              ListTile(
+                leading: Icon(
+                  address.id == current?.id
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                ),
+                title: Text(address.fullName),
+                subtitle: Text('${address.line1} · ${address.locality}'),
+                onTap: () => Navigator.of(sheetContext).pop(address.id),
+              ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(sheetContext).pop();
+                context.push(AddressesScreen.path);
+              },
+              child: const Text('Manage addresses'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (picked != null && mounted) {
+      setState(() => _selectedAddressId = picked);
+    }
+  }
+
   Future<void> _pay() async {
+    final List<Address> addresses =
+        ref.read(addressesControllerProvider).value ?? const <Address>[];
+    final Address? deliverTo = _selectedAddress(addresses);
+
     setState(() => _paying = true);
     try {
-      await ref.read(checkoutControllerProvider.notifier).payNow();
+      await ref
+          .read(checkoutControllerProvider.notifier)
+          .payNow(addressId: deliverTo?.id);
     } on ApiException catch (error) {
       if (mounted) _showMessage(error.message);
     } on PaymentException catch (error) {
@@ -175,6 +243,55 @@ class _ReviewViewState extends ConsumerState<_ReviewView> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+/// Where the order ships. Optional server-side, so checkout stays usable
+/// with an empty address book — the card then invites adding one.
+class _DeliverToCard extends StatelessWidget {
+  const _DeliverToCard({required this.address, required this.onChange});
+
+  final Address? address;
+  final VoidCallback onChange;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final Address? deliverTo = address;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Icon(Icons.location_on_outlined, color: theme.colorScheme.primary),
+        const SizedBox(width: 8),
+        Expanded(
+          child: deliverTo == null
+              ? Text(
+                  'No delivery address yet.',
+                  style: theme.textTheme.bodyMedium,
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      deliverTo.fullName,
+                      style: theme.textTheme.titleSmall,
+                    ),
+                    Text(
+                      '${deliverTo.line1} · ${deliverTo.locality}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+        TextButton(
+          onPressed: onChange,
+          child: Text(deliverTo == null ? 'Add' : 'Change'),
+        ),
+      ],
+    );
   }
 }
 
