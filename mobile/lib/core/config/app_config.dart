@@ -38,6 +38,18 @@ abstract final class AppConfig {
     return media.replace(host: apiHost).toString();
   }
 
+  /// Stripe *publishable* key (`pk_test_...` / `pk_live_...`). Not a secret,
+  /// but environment-specific, so it rides in the same way as the API host:
+  /// `flutter run --dart-define=STRIPE_PUBLISHABLE_KEY=pk_test_...`
+  /// Left empty the app still runs — checkout then fails with a clear message
+  /// instead of a native crash deep inside the payment sheet.
+  static const String stripePublishableKey = String.fromEnvironment(
+    'STRIPE_PUBLISHABLE_KEY',
+  );
+
+  /// Shown as the merchant name on Stripe's payment sheet.
+  static const String merchantDisplayName = 'Ecommerce App';
+
   static const Duration connectTimeout = Duration(seconds: 10);
   static const Duration receiveTimeout = Duration(seconds: 15);
 }

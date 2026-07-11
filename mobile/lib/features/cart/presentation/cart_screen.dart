@@ -8,11 +8,12 @@ import '../../../shared/widgets/empty_view.dart';
 import '../../../shared/widgets/error_view.dart';
 import '../../../shared/widgets/remote_thumbnail.dart';
 import '../../catalog/presentation/catalog_screen.dart';
+import '../../checkout/presentation/checkout_screen.dart';
 import '../application/cart_controller.dart';
 import '../domain/cart.dart';
 
 /// The cart: line items with quantity steppers and the server-computed
-/// subtotal. Checkout itself lands with the next milestone slice.
+/// subtotal, leading into the checkout flow.
 class CartScreen extends ConsumerWidget {
   const CartScreen({super.key});
 
@@ -334,17 +335,9 @@ class _CartSummaryBar extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              const FilledButton(
-                onPressed: null,
-                child: Text('Checkout'),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Checkout arrives with the next milestone slice.',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+              FilledButton(
+                onPressed: () => context.push(CheckoutScreen.path),
+                child: const Text('Checkout'),
               ),
             ],
           ),

@@ -16,7 +16,8 @@ Milestone **M10** is in progress, slice by slice.
       chips, price/sort filters, product detail with image gallery
 - [x] Cart & favorites — server-truth cart with quantity steppers and badge,
       optimistic favorite hearts on cards and the detail screen
-- [ ] Stripe checkout
+- [x] Stripe checkout — coupon quotes, order placement with reserved stock,
+      payment sheet confirmation, retryable pending payments
 - [ ] Orders & tracking
 - [ ] Profile & addresses
 - [ ] Reviews & ratings
@@ -58,6 +59,15 @@ without touching source:
 ```bash
 flutter run --dart-define=API_BASE_URL=http://192.168.1.20:3000/api
 ```
+
+Checkout needs the Stripe *publishable* key (the secret key stays on the API):
+
+```bash
+flutter run --dart-define=STRIPE_PUBLISHABLE_KEY=pk_test_...
+```
+
+Without it the app still runs; paying fails with a clear configuration
+message instead of opening the payment sheet.
 
 ## Checks
 

@@ -81,12 +81,12 @@ void main() {
     expect(find.text('₺99.80'), findsOneWidget); // 49.90 × 2 line total
     expect(find.text('₺114.80'), findsOneWidget); // server subtotal
     expect(find.text('3 items'), findsOneWidget);
-    // Checkout is a stub until the next slice.
+    // Checkout is live: it pushes the checkout flow.
     expect(
       tester
           .widget<FilledButton>(find.widgetWithText(FilledButton, 'Checkout'))
           .onPressed,
-      isNull,
+      isNotNull,
     );
   });
 
