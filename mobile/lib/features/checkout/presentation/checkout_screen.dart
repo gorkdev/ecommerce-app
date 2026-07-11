@@ -10,6 +10,7 @@ import '../../cart/application/cart_controller.dart';
 import '../../cart/domain/cart.dart';
 import '../../catalog/presentation/catalog_screen.dart';
 import '../../orders/domain/order.dart';
+import '../../orders/presentation/orders_screen.dart';
 import '../application/checkout_controller.dart';
 import '../data/payment_sheet_service.dart';
 import '../domain/coupon_quote.dart';
@@ -440,6 +441,11 @@ class _SuccessView extends StatelessWidget {
             FilledButton(
               onPressed: () => context.go(CatalogScreen.path),
               child: const Text('Continue shopping'),
+            ),
+            TextButton(
+              // Replace the finished checkout so back lands on the cart.
+              onPressed: () => context.pushReplacement(OrdersScreen.path),
+              child: const Text('View my orders'),
             ),
           ],
         ),

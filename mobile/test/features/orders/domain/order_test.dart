@@ -120,6 +120,11 @@ void main() {
     expect(order.hasDiscount, isTrue);
   });
 
+  test('itemCount sums the units across every line', () {
+    final Order order = Order.fromJson(Map<String, dynamic>.from(_orderJson));
+    expect(order.itemCount, 3); // 2 mugs + 1 bottle
+  });
+
   test('reference is the uppercased tail of the id', () {
     final Order order = Order.fromJson(Map<String, dynamic>.from(_orderJson));
     expect(order.reference, 'EF123456');

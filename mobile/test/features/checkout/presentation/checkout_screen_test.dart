@@ -189,6 +189,7 @@ void main() {
     expect(find.text('Payment received'), findsOneWidget);
     expect(find.textContaining('Order #ORD_1'), findsOneWidget);
     expect(find.text('Continue shopping'), findsOneWidget);
+    expect(find.text('View my orders'), findsOneWidget);
   });
 
   testWidgets('a cancelled sheet parks the payment with a retry', (

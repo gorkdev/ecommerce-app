@@ -1,0 +1,137 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../shared/formatting/date_formatter.dart';
+import '../../../shared/formatting/price_formatter.dart';
+import '../../../shared/widgets/empty_view.dart';
+import '../../../shared/widgets/error_view.dart';
+import '../../catalog/presentation/catalog_screen.dart';
+import '../application/orders_providers.dart';
+import '../domain/order.dart';
+import 'order_detail_screen.dart';
+import 'widgets/order_status_chip.dart';
+
+/// The user's order history, newest first. Pull to refresh picks up status
+/// changes made server-side (payment webhooks, admin fulfilment).
+class OrdersScreen extends ConsumerWidget {
+  const OrdersScreen({super.key});
+
+  static const String path = '/orders';
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AsyncValue<List<Order>> ordersState = ref.watch(ordersProvider);
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('My orders')),
+      body: _buildBody(context, ref, ordersState),
+    );
+  }
+
+  Widget _buildBody(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<Order>> ordersState,
+  ) {
+    final List<Order>? orders = ordersState.value;
+    if (orders == null) {
+      if (ordersState.hasError) {
+        return ErrorView(
+          error: ordersState.error,
+          onRetry: () => ref.invalidate(ordersProvider),
+        );
+      }
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (orders.isEmpty) {
+      return EmptyView(
+        icon: Icons.receipt_long_outlined,
+        title: 'No orders yet',
+        subtitle: 'Everything you buy shows up here.',
+        action: FilledButton.tonal(
+          onPressed: () => context.go(CatalogScreen.path),
+          child: const Text('Browse products'),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => ref.refresh(ordersProvider.future),
+      child: ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: orders.length,
+        separatorBuilder: (_, _) => const SizedBox(height: 12),
+        itemBuilder: (_, int index) => _OrderCard(orders[index]),
+      ),
+    );
+  }
+}
+
+class _OrderCard extends StatelessWidget {
+  const _OrderCard(this.order);
+
+  final Order order;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => context.push(OrderDetailScreen.location(order.id)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Order #${order.reference}',
+                      style: theme.textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      DateFormatter.date(order.createdAt),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    Text(
+                      order.itemCount == 1
+                          ? '1 item'
+                          : '${order.itemCount} items',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: <Widget>[
+                  Text(
+                    PriceFormatter.format(order.total, order.currency),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  OrderStatusChip(order.status),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

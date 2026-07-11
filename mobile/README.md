@@ -18,7 +18,8 @@ Milestone **M10** is in progress, slice by slice.
       optimistic favorite hearts on cards and the detail screen
 - [x] Stripe checkout — coupon quotes, order placement with reserved stock,
       payment sheet confirmation, retryable pending payments
-- [ ] Orders & tracking
+- [x] Orders & tracking — order history with pull-to-refresh, detail view
+      with a fulfilment timeline and the totals exactly as charged
 - [ ] Profile & addresses
 - [ ] Reviews & ratings
 

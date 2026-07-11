@@ -41,6 +41,10 @@ final class Order {
 
   bool get hasDiscount => (double.tryParse(discountTotal) ?? 0) > 0;
 
+  /// Total units across every line, matching how the cart badge counts.
+  int get itemCount =>
+      items.fold(0, (int sum, OrderItem item) => sum + item.quantity);
+
   /// A human-sized order reference: the tail of the (cuid) id, uppercased.
   String get reference =>
       id.length <= 8 ? id.toUpperCase() : id.substring(id.length - 8).toUpperCase();
