@@ -22,7 +22,10 @@ Milestone **M10** is in progress, slice by slice.
       with a fulfilment timeline and the totals exactly as charged
 - [x] Profile & addresses — account hub, address book with a single
       server-kept default, delivery address picker at checkout
-- [ ] Reviews & ratings
+- [x] Reviews & ratings — rating summary with distribution bars, one
+      write/edit/delete review per verified buyer
+
+All M10 slices are done — the customer flow is complete end to end.
 
 ## Layout
 

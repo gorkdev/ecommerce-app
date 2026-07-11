@@ -7,6 +7,8 @@ import 'package:ecommerce_app/features/catalog/domain/product_summary.dart';
 import 'package:ecommerce_app/features/catalog/presentation/product_detail_screen.dart';
 import 'package:ecommerce_app/features/favorites/data/favorites_repository.dart';
 import 'package:ecommerce_app/features/favorites/domain/favorite.dart';
+import 'package:ecommerce_app/features/reviews/data/reviews_repository.dart';
+import 'package:ecommerce_app/features/reviews/domain/review.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -17,6 +19,17 @@ class MockCatalogRepository extends Mock implements CatalogRepository {}
 class MockCartRepository extends Mock implements CartRepository {}
 
 class MockFavoritesRepository extends Mock implements FavoritesRepository {}
+
+class MockReviewsRepository extends Mock implements ReviewsRepository {}
+
+const ProductReviews _noReviews = ProductReviews(
+  items: <Review>[],
+  summary: RatingSummary(
+    average: 0,
+    count: 0,
+    distribution: <int, int>{1: 0, 2: 0, 3: 0, 4: 0, 5: 0},
+  ),
+);
 
 const Cart _emptyCart = Cart(
   id: 'cart_1',
@@ -41,6 +54,7 @@ void main() {
   late MockCatalogRepository repository;
   late MockCartRepository cartRepository;
   late MockFavoritesRepository favoritesRepository;
+  late MockReviewsRepository reviewsRepository;
 
   setUp(() {
     repository = MockCatalogRepository();
@@ -50,6 +64,10 @@ void main() {
     when(
       () => favoritesRepository.list(),
     ).thenAnswer((_) async => const <Favorite>[]);
+    reviewsRepository = MockReviewsRepository();
+    when(
+      () => reviewsRepository.fetchForProduct(any()),
+    ).thenAnswer((_) async => _noReviews);
   });
 
   Future<void> pumpDetail(WidgetTester tester) async {
@@ -70,6 +88,7 @@ void main() {
           catalogRepositoryProvider.overrideWithValue(repository),
           cartRepositoryProvider.overrideWithValue(cartRepository),
           favoritesRepositoryProvider.overrideWithValue(favoritesRepository),
+          reviewsRepositoryProvider.overrideWithValue(reviewsRepository),
         ],
         child: const MaterialApp(
           home: ProductDetailScreen(slug: 'wireless-headphones'),
@@ -223,6 +242,40 @@ void main() {
 
     verify(() => favoritesRepository.add('prd_1')).called(1);
     expect(find.byIcon(Icons.favorite), findsOneWidget);
+  });
+
+  testWidgets('summarizes the rating and links to the reviews', (
+    WidgetTester tester,
+  ) async {
+    when(
+      () => repository.fetchProduct('wireless-headphones'),
+    ).thenAnswer((_) async => _headphones);
+    when(() => reviewsRepository.fetchForProduct('prd_1')).thenAnswer(
+      (_) async => const ProductReviews(
+        items: <Review>[],
+        summary: RatingSummary(
+          average: 4.2,
+          count: 12,
+          distribution: <int, int>{1: 0, 2: 1, 3: 1, 4: 4, 5: 6},
+        ),
+      ),
+    );
+
+    await pumpDetail(tester);
+
+    expect(find.text('4.2 · 12 reviews'), findsOneWidget);
+  });
+
+  testWidgets('a review-less product invites the first review', (
+    WidgetTester tester,
+  ) async {
+    when(
+      () => repository.fetchProduct('wireless-headphones'),
+    ).thenAnswer((_) async => _headphones);
+
+    await pumpDetail(tester);
+
+    expect(find.text('No reviews yet'), findsOneWidget);
   });
 
   testWidgets('a vanished product reads as gone, with no retry', (

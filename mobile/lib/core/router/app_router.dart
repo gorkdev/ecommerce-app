@@ -17,6 +17,7 @@ import '../../features/favorites/presentation/favorites_screen.dart';
 import '../../features/orders/presentation/order_detail_screen.dart';
 import '../../features/orders/presentation/orders_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/reviews/presentation/reviews_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
 
 const Set<String> _publicRoutes = <String>{
@@ -72,6 +73,13 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((ref) {
         path: ProductDetailScreen.path,
         builder: (_, GoRouterState state) =>
             ProductDetailScreen(slug: state.pathParameters['slug']!),
+      ),
+      GoRoute(
+        path: ReviewsScreen.path,
+        builder: (_, GoRouterState state) => ReviewsScreen(
+          productId: state.pathParameters['productId']!,
+          productName: state.extra as String?,
+        ),
       ),
       GoRoute(path: CartScreen.path, builder: (_, _) => const CartScreen()),
       GoRoute(

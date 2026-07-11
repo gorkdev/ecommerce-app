@@ -8,6 +8,10 @@ import '../../../shared/widgets/error_view.dart';
 import '../../cart/application/cart_controller.dart';
 import '../../cart/presentation/cart_screen.dart';
 import '../../favorites/application/favorites_controller.dart';
+import '../../reviews/application/reviews_providers.dart';
+import '../../reviews/domain/review.dart';
+import '../../reviews/presentation/reviews_screen.dart';
+import '../../reviews/presentation/widgets/rating_stars.dart';
 import '../application/catalog_providers.dart';
 import '../domain/product.dart';
 import '../domain/product_summary.dart';
@@ -157,7 +161,9 @@ class _DetailBody extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 12),
+        _ReviewsTile(product),
+        const SizedBox(height: 12),
         Text('Description', style: theme.textTheme.titleMedium),
         const SizedBox(height: 8),
         Text(
@@ -165,6 +171,54 @@ class _DetailBody extends StatelessWidget {
           style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
         ),
       ],
+    );
+  }
+}
+
+/// One-line rating summary that opens the reviews screen.
+class _ReviewsTile extends ConsumerWidget {
+  const _ReviewsTile(this.product);
+
+  final Product product;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final RatingSummary? summary = ref
+        .watch(productReviewsProvider(product.id))
+        .value
+        ?.summary;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: () => context.push(
+        ReviewsScreen.location(product.id),
+        extra: product.name,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: <Widget>[
+            RatingStars(summary?.average ?? 0),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                summary == null
+                    ? 'Reviews'
+                    : summary.count == 0
+                    ? 'No reviews yet'
+                    : '${summary.average.toStringAsFixed(1)} · '
+                          '${summary.count == 1 ? '1 review' : '${summary.count} reviews'}',
+                style: theme.textTheme.bodyMedium,
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
