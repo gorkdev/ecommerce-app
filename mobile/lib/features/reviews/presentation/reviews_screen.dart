@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n/l10n.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../shared/formatting/date_formatter.dart';
 import '../../../shared/widgets/error_view.dart';
@@ -28,7 +29,7 @@ class ReviewsScreen extends ConsumerWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(title: Text(productName ?? 'Reviews')),
+      appBar: AppBar(title: Text(productName ?? context.l10n.reviews)),
       body: _buildBody(context, ref, reviewsState),
     );
   }
@@ -70,10 +71,13 @@ class ReviewsScreen extends ConsumerWidget {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(height: 12),
-                Text('No reviews yet', style: theme.textTheme.titleMedium),
+                Text(
+                  context.l10n.noReviewsYet,
+                  style: theme.textTheme.titleMedium,
+                ),
                 const SizedBox(height: 4),
                 Text(
-                  'Purchased this product? Be the first to review it.',
+                  context.l10n.beFirstToReview,
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
@@ -112,7 +116,7 @@ class _SummaryHeader extends StatelessWidget {
             RatingStars(summary.average),
             const SizedBox(height: 4),
             Text(
-              summary.count == 1 ? '1 review' : '${summary.count} reviews',
+              context.l10n.nReviews(summary.count),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -175,7 +179,9 @@ class _OwnReviewCta extends ConsumerWidget {
 
     return OutlinedButton.icon(
       icon: Icon(own == null ? Icons.rate_review_outlined : Icons.edit),
-      label: Text(own == null ? 'Write a review' : 'Edit your review'),
+      label: Text(
+        own == null ? context.l10n.writeReview : context.l10n.editYourReview,
+      ),
       onPressed: () => showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
@@ -210,7 +216,7 @@ class _ReviewTile extends StatelessWidget {
                 ),
               ),
               Text(
-                DateFormatter.date(review.createdAt),
+                DateFormatter.date(review.createdAt, context.l10n.localeName),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -260,6 +266,7 @@ class _ReviewFormSheetState extends ConsumerState<_ReviewFormSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final AppLocalizations l10n = context.l10n;
 
     return Padding(
       // Keep the sheet above the keyboard.
@@ -274,7 +281,7 @@ class _ReviewFormSheetState extends ConsumerState<_ReviewFormSheet> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           Text(
-            widget.existing == null ? 'Write a review' : 'Edit your review',
+            widget.existing == null ? l10n.writeReview : l10n.editYourReview,
             style: theme.textTheme.titleMedium,
             textAlign: TextAlign.center,
           ),
@@ -291,9 +298,9 @@ class _ReviewFormSheetState extends ConsumerState<_ReviewFormSheet> {
             maxLines: 4,
             maxLength: 2000,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(
-              labelText: 'Comment (optional)',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l10n.commentOptional,
+              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 8),
@@ -304,13 +311,13 @@ class _ReviewFormSheetState extends ConsumerState<_ReviewFormSheet> {
                     dimension: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('Submit review'),
+                : Text(l10n.submitReview),
           ),
           if (widget.existing != null)
             TextButton(
               onPressed: _busy ? null : _delete,
               child: Text(
-                'Delete my review',
+                l10n.deleteMyReview,
                 style: TextStyle(color: theme.colorScheme.error),
               ),
             ),
@@ -348,9 +355,9 @@ class _ReviewFormSheetState extends ConsumerState<_ReviewFormSheet> {
       Navigator.of(context).pop();
     } on ApiException catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.errorText(error))),
+        );
       }
     } finally {
       if (mounted) setState(() => _busy = false);

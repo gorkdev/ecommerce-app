@@ -119,19 +119,20 @@ final class OrderCoupon {
 }
 
 /// Order lifecycle exactly as the API's `OrderStatus` enum serializes it.
+/// Display names live in the presentation layer (`OrderStatusLabel`), where
+/// the localizations are.
 enum OrderStatus {
-  pending('PENDING', 'Pending'),
-  paid('PAID', 'Paid'),
-  preparing('PREPARING', 'Preparing'),
-  shipped('SHIPPED', 'Shipped'),
-  delivered('DELIVERED', 'Delivered'),
-  cancelled('CANCELLED', 'Cancelled'),
-  refunded('REFUNDED', 'Refunded');
+  pending('PENDING'),
+  paid('PAID'),
+  preparing('PREPARING'),
+  shipped('SHIPPED'),
+  delivered('DELIVERED'),
+  cancelled('CANCELLED'),
+  refunded('REFUNDED');
 
-  const OrderStatus(this.wire, this.label);
+  const OrderStatus(this.wire);
 
   final String wire;
-  final String label;
 
   static OrderStatus parse(String wire) => values.firstWhere(
     (OrderStatus status) => status.wire == wire,

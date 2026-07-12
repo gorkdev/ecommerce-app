@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/l10n.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../shared/widgets/empty_view.dart';
 import '../../../shared/widgets/error_view.dart';
@@ -26,11 +27,11 @@ class AddressesScreen extends ConsumerWidget {
     final List<Address>? addresses = addressesState.value;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Addresses')),
+      appBar: AppBar(title: Text(context.l10n.addresses)),
       floatingActionButton: addresses == null || addresses.isEmpty
           ? null
           : FloatingActionButton(
-              tooltip: 'Add address',
+              tooltip: context.l10n.addAddress,
               onPressed: () => context.push(AddressFormScreen.path),
               child: const Icon(Icons.add),
             ),
@@ -58,11 +59,11 @@ class AddressesScreen extends ConsumerWidget {
     if (addresses.isEmpty) {
       return EmptyView(
         icon: Icons.location_on_outlined,
-        title: 'No addresses yet',
-        subtitle: 'Save one to speed through checkout.',
+        title: context.l10n.noAddressesYet,
+        subtitle: context.l10n.noAddressesHint,
         action: FilledButton.tonal(
           onPressed: () => context.push(AddressFormScreen.path),
-          child: const Text('Add address'),
+          child: Text(context.l10n.addAddress),
         ),
       );
     }
@@ -117,7 +118,7 @@ class _AddressCard extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(
-                            'Default',
+                            context.l10n.defaultBadge,
                             style: theme.textTheme.labelSmall?.copyWith(
                               color: theme.colorScheme.onSecondaryContainer,
                             ),
@@ -148,18 +149,18 @@ class _AddressCard extends ConsumerWidget {
               onSelected: (_AddressAction action) =>
                   _handle(context, ref, action),
               itemBuilder: (_) => <PopupMenuEntry<_AddressAction>>[
-                const PopupMenuItem<_AddressAction>(
+                PopupMenuItem<_AddressAction>(
                   value: _AddressAction.edit,
-                  child: Text('Edit'),
+                  child: Text(context.l10n.edit),
                 ),
                 if (!address.isDefault)
-                  const PopupMenuItem<_AddressAction>(
+                  PopupMenuItem<_AddressAction>(
                     value: _AddressAction.setDefault,
-                    child: Text('Set as default'),
+                    child: Text(context.l10n.setAsDefault),
                   ),
-                const PopupMenuItem<_AddressAction>(
+                PopupMenuItem<_AddressAction>(
                   value: _AddressAction.delete,
-                  child: Text('Delete'),
+                  child: Text(context.l10n.delete),
                 ),
               ],
             ),
@@ -186,19 +187,20 @@ class _AddressCard extends ConsumerWidget {
               ),
         );
       case _AddressAction.delete:
+        final AppLocalizations l10n = context.l10n;
         final bool? confirmed = await showDialog<bool>(
           context: context,
           builder: (BuildContext dialogContext) => AlertDialog(
-            title: const Text('Delete this address?'),
+            title: Text(l10n.deleteAddressTitle),
             content: Text(address.line1),
             actions: <Widget>[
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(false),
-                child: const Text('Cancel'),
+                child: Text(l10n.cancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(dialogContext).pop(true),
-                child: const Text('Delete'),
+                child: Text(l10n.delete),
               ),
             ],
           ),
@@ -218,9 +220,9 @@ class _AddressCard extends ConsumerWidget {
       await act();
     } on ApiException catch (error) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.errorText(error))),
+      );
     }
   }
 }

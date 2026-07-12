@@ -15,6 +15,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../support/test_app.dart';
+
 class MockCartRepository extends Mock implements CartRepository {}
 
 class MockCheckoutRepository extends Mock implements CheckoutRepository {}
@@ -127,7 +129,7 @@ void main() {
           paymentSheetServiceProvider.overrideWithValue(sheet),
           addressesRepositoryProvider.overrideWithValue(addressesRepository),
         ],
-        child: const MaterialApp(home: CheckoutScreen()),
+        child: testApp(home: const CheckoutScreen()),
       ),
     );
     await tester.pumpAndSettle();

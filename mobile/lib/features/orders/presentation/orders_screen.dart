@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/l10n.dart';
 import '../../../shared/formatting/date_formatter.dart';
 import '../../../shared/formatting/price_formatter.dart';
 import '../../../shared/widgets/empty_view.dart';
@@ -24,7 +25,7 @@ class OrdersScreen extends ConsumerWidget {
     final AsyncValue<List<Order>> ordersState = ref.watch(ordersProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My orders')),
+      appBar: AppBar(title: Text(context.l10n.myOrders)),
       body: _buildBody(context, ref, ordersState),
     );
   }
@@ -48,11 +49,11 @@ class OrdersScreen extends ConsumerWidget {
     if (orders.isEmpty) {
       return EmptyView(
         icon: Icons.receipt_long_outlined,
-        title: 'No orders yet',
-        subtitle: 'Everything you buy shows up here.',
+        title: context.l10n.noOrdersYet,
+        subtitle: context.l10n.noOrdersHint,
         action: FilledButton.tonal(
           onPressed: () => context.go(CatalogScreen.path),
-          child: const Text('Browse products'),
+          child: Text(context.l10n.browseProducts),
         ),
       );
     }
@@ -93,20 +94,21 @@ class _OrderCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      'Order #${order.reference}',
+                      context.l10n.orderRef(order.reference),
                       style: theme.textTheme.titleSmall,
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      DateFormatter.date(order.createdAt),
+                      DateFormatter.date(
+                        order.createdAt,
+                        context.l10n.localeName,
+                      ),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                     Text(
-                      order.itemCount == 1
-                          ? '1 item'
-                          : '${order.itemCount} items',
+                      context.l10n.nItems(order.itemCount),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),

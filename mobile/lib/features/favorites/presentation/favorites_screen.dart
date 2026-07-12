@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/l10n.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../shared/formatting/price_formatter.dart';
 import '../../../shared/widgets/empty_view.dart';
@@ -24,12 +25,16 @@ class FavoritesScreen extends ConsumerWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Favorites')),
-      body: _buildBody(ref, favorites),
+      appBar: AppBar(title: Text(context.l10n.favorites)),
+      body: _buildBody(context, ref, favorites),
     );
   }
 
-  Widget _buildBody(WidgetRef ref, AsyncValue<List<Favorite>> favorites) {
+  Widget _buildBody(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<Favorite>> favorites,
+  ) {
     final List<Favorite>? items = favorites.value;
     if (items == null) {
       if (favorites.hasError) {
@@ -43,10 +48,10 @@ class FavoritesScreen extends ConsumerWidget {
     }
 
     if (items.isEmpty) {
-      return const EmptyView(
+      return EmptyView(
         icon: Icons.favorite_outline,
-        title: 'Nothing saved yet',
-        subtitle: 'Tap the heart on a product to keep it here.',
+        title: context.l10n.nothingSavedYet,
+        subtitle: context.l10n.favoritesHint,
       );
     }
 
@@ -68,9 +73,9 @@ class _FavoriteTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final String? warning = !favorite.product.isActive
-        ? 'No longer available'
+        ? context.l10n.noLongerAvailable
         : !favorite.product.inStock
-        ? 'Out of stock'
+        ? context.l10n.outOfStock
         : null;
 
     return InkWell(
@@ -114,7 +119,7 @@ class _FavoriteTile extends ConsumerWidget {
             ),
           ),
           IconButton(
-            tooltip: 'Remove from favorites',
+            tooltip: context.l10n.removeFromFavorites,
             icon: Icon(Icons.favorite, color: theme.colorScheme.error),
             onPressed: () => _unfavorite(context, ref),
           ),
@@ -130,9 +135,9 @@ class _FavoriteTile extends ConsumerWidget {
           .toggle(favorite.product);
     } on ApiException catch (error) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.errorText(error))),
+      );
     }
   }
 }

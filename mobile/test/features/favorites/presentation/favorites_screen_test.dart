@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../support/test_app.dart';
+
 class MockFavoritesRepository extends Mock implements FavoritesRepository {}
 
 const Favorite _savedMug = Favorite(
@@ -36,7 +38,7 @@ void main() {
         // Mirrors main.dart: automatic provider retry stays off in tests.
         retry: (int retryCount, Object error) => null,
         overrides: [favoritesRepositoryProvider.overrideWithValue(repository)],
-        child: const MaterialApp(home: FavoritesScreen()),
+        child: testApp(home: const FavoritesScreen()),
       ),
     );
     await tester.pumpAndSettle();

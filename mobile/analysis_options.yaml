@@ -1,6 +1,9 @@
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
+  # Machine-written by gen_l10n; not held to the hand-written bar.
+  exclude:
+    - lib/l10n/generated/**
   language:
     # Implicit casts and dynamic-typed holes are where JSON parsing bugs hide.
     strict-casts: true

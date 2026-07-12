@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/l10n.dart';
 import '../../../shared/widgets/empty_view.dart';
 import '../../../shared/widgets/error_view.dart';
 import '../../auth/application/auth_controller.dart';
@@ -96,9 +97,9 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
       if (failedNow && !failedBefore) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Could not load more products.'),
+            content: Text(context.l10n.couldNotLoadMore),
             action: SnackBarAction(
-              label: 'Retry',
+              label: context.l10n.retry,
               onPressed: () => _controller.loadMore(),
             ),
           ),
@@ -110,24 +111,25 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
       productListControllerProvider,
     );
     final ProductQuery query = _controller.query;
+    final AppLocalizations l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Storefront'),
+        title: Text(l10n.appTitle),
         actions: <Widget>[
           PopupMenuButton<ProductSort>(
             icon: const Icon(Icons.sort),
-            tooltip: 'Sort',
+            tooltip: l10n.sort,
             onSelected: (ProductSort sort) =>
                 _controller.apply(_controller.query.withSort(sort)),
             itemBuilder: (_) => <PopupMenuEntry<ProductSort>>[
-              _sortItem(ProductSort.newest, 'Newest'),
-              _sortItem(ProductSort.priceAsc, 'Price: low to high'),
-              _sortItem(ProductSort.priceDesc, 'Price: high to low'),
+              _sortItem(ProductSort.newest, l10n.sortNewest),
+              _sortItem(ProductSort.priceAsc, l10n.sortPriceLowHigh),
+              _sortItem(ProductSort.priceDesc, l10n.sortPriceHighLow),
             ],
           ),
           IconButton(
-            tooltip: 'Price filter',
+            tooltip: l10n.priceFilter,
             onPressed: _openPriceFilter,
             icon: Badge(
               smallSize: 8,
@@ -136,7 +138,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
             ),
           ),
           IconButton(
-            tooltip: 'Cart',
+            tooltip: l10n.cart,
             onPressed: () => context.push(CartScreen.path),
             icon: Badge(
               label: Text('${ref.watch(cartItemCountProvider)}'),
@@ -154,21 +156,21 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                 ref.read(authControllerProvider.notifier).logout(),
             },
             itemBuilder: (_) => <PopupMenuEntry<_CatalogMenuAction>>[
-              const PopupMenuItem<_CatalogMenuAction>(
+              PopupMenuItem<_CatalogMenuAction>(
                 value: _CatalogMenuAction.profile,
-                child: Text('Profile'),
+                child: Text(l10n.profile),
               ),
-              const PopupMenuItem<_CatalogMenuAction>(
+              PopupMenuItem<_CatalogMenuAction>(
                 value: _CatalogMenuAction.orders,
-                child: Text('My orders'),
+                child: Text(l10n.myOrders),
               ),
-              const PopupMenuItem<_CatalogMenuAction>(
+              PopupMenuItem<_CatalogMenuAction>(
                 value: _CatalogMenuAction.favorites,
-                child: Text('Favorites'),
+                child: Text(l10n.favorites),
               ),
-              const PopupMenuItem<_CatalogMenuAction>(
+              PopupMenuItem<_CatalogMenuAction>(
                 value: _CatalogMenuAction.signOut,
-                child: Text('Sign out'),
+                child: Text(l10n.signOut),
               ),
             ],
           ),
@@ -183,14 +185,14 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
               onChanged: _onSearchChanged,
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
-                hintText: 'Search products',
+                hintText: l10n.searchProducts,
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: ListenableBuilder(
                   listenable: _search,
                   builder: (_, _) => _search.text.isEmpty
                       ? const SizedBox.shrink()
                       : IconButton(
-                          tooltip: 'Clear search',
+                          tooltip: l10n.clearSearch,
                           icon: const Icon(Icons.close),
                           onPressed: () {
                             _search.clear();
@@ -235,10 +237,10 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
     }
 
     if (data.products.isEmpty) {
-      return const EmptyView(
+      return EmptyView(
         icon: Icons.search_off_outlined,
-        title: 'No products found',
-        subtitle: 'Try a different search or clear the filters.',
+        title: context.l10n.noProductsFound,
+        subtitle: context.l10n.noProductsHint,
       );
     }
 
@@ -307,7 +309,7 @@ class _CategoryChips extends ConsumerWidget {
         itemBuilder: (_, int index) {
           if (index == 0) {
             return ChoiceChip(
-              label: const Text('All'),
+              label: Text(context.l10n.allCategories),
               selected: selectedId == null,
               onSelected: (_) => onSelected(null),
             );

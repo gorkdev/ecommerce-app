@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/l10n.dart';
 import '../../../core/network/api_exception.dart';
 import '../application/addresses_controller.dart';
 import '../domain/address.dart';
@@ -70,9 +71,13 @@ class _AddressFormScreenState extends ConsumerState<AddressFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.initial == null ? 'New address' : 'Edit address'),
+        title: Text(
+          widget.initial == null ? l10n.newAddress : l10n.editAddress,
+        ),
       ),
       body: Form(
         key: _form,
@@ -81,25 +86,25 @@ class _AddressFormScreenState extends ConsumerState<AddressFormScreen> {
           children: <Widget>[
             _field(
               _fullName,
-              label: 'Full name',
+              label: l10n.fullName,
               validator: _lengthValidator(2, 100),
               capitalization: TextCapitalization.words,
             ),
             _field(
               _phone,
-              label: 'Phone',
+              label: l10n.phone,
               validator: _lengthValidator(7, 20),
               keyboardType: TextInputType.phone,
             ),
             _field(
               _line1,
-              label: 'Address line',
+              label: l10n.addressLine,
               validator: _lengthValidator(3, 200),
               capitalization: TextCapitalization.sentences,
             ),
             _field(
               _line2,
-              label: 'Address line 2 (optional)',
+              label: l10n.addressLine2Optional,
               validator: (String? value) {
                 final String text = value?.trim() ?? '';
                 if (text.isEmpty) return null;
@@ -113,7 +118,7 @@ class _AddressFormScreenState extends ConsumerState<AddressFormScreen> {
                 Expanded(
                   child: _field(
                     _district,
-                    label: 'District',
+                    label: l10n.district,
                     validator: _lengthValidator(2, 100),
                     capitalization: TextCapitalization.words,
                   ),
@@ -122,7 +127,7 @@ class _AddressFormScreenState extends ConsumerState<AddressFormScreen> {
                 Expanded(
                   child: _field(
                     _city,
-                    label: 'City',
+                    label: l10n.city,
                     validator: _lengthValidator(2, 100),
                     capitalization: TextCapitalization.words,
                   ),
@@ -135,7 +140,7 @@ class _AddressFormScreenState extends ConsumerState<AddressFormScreen> {
                 Expanded(
                   child: _field(
                     _postalCode,
-                    label: 'Postal code',
+                    label: l10n.postalCode,
                     validator: _lengthValidator(3, 10),
                   ),
                 ),
@@ -143,10 +148,10 @@ class _AddressFormScreenState extends ConsumerState<AddressFormScreen> {
                 Expanded(
                   child: _field(
                     _country,
-                    label: 'Country (ISO-2)',
+                    label: l10n.countryIso,
                     validator: (String? value) {
                       final String text = value?.trim() ?? '';
-                      if (text.length != 2) return 'Two letters, like TR';
+                      if (text.length != 2) return l10n.countryFormatHint;
                       return null;
                     },
                     capitalization: TextCapitalization.characters,
@@ -156,11 +161,11 @@ class _AddressFormScreenState extends ConsumerState<AddressFormScreen> {
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Use as default address'),
+              title: Text(l10n.useAsDefaultAddress),
               // The default flag only ever moves onto another address; it
               // cannot be switched off here.
               subtitle: _editingDefault
-                  ? const Text('This is your default address.')
+                  ? Text(l10n.thisIsDefaultAddress)
                   : null,
               value: _isDefault,
               onChanged: _editingDefault
@@ -175,7 +180,7 @@ class _AddressFormScreenState extends ConsumerState<AddressFormScreen> {
                       dimension: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Save address'),
+                  : Text(l10n.saveAddress),
             ),
           ],
         ),
@@ -209,8 +214,8 @@ class _AddressFormScreenState extends ConsumerState<AddressFormScreen> {
   String? Function(String?) _lengthValidator(int min, int max) {
     return (String? value) {
       final String text = value?.trim() ?? '';
-      if (text.length < min) return 'At least $min characters';
-      if (text.length > max) return 'At most $max characters';
+      if (text.length < min) return context.l10n.fieldAtLeast(min);
+      if (text.length > max) return context.l10n.fieldAtMost(max);
       return null;
     };
   }
@@ -239,9 +244,9 @@ class _AddressFormScreenState extends ConsumerState<AddressFormScreen> {
       if (mounted) context.pop();
     } on ApiException catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.errorText(error))),
+        );
       }
     } finally {
       if (mounted) setState(() => _saving = false);

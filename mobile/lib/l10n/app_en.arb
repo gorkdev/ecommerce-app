@@ -1,0 +1,232 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "Storefront",
+
+  "tryAgain": "Try again",
+  "retry": "Retry",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "apply": "Apply",
+  "add": "Add",
+  "change": "Change",
+  "edit": "Edit",
+  "clear": "Clear",
+  "remove": "Remove",
+  "browseProducts": "Browse products",
+  "somethingWentWrong": "Something went wrong.",
+  "networkError": "No connection to the server.",
+
+  "subtotal": "Subtotal",
+  "total": "Total",
+  "discount": "Discount",
+  "discountWithCode": "Discount ({code})",
+  "@discountWithCode": {
+    "placeholders": {
+      "code": {"type": "String"}
+    }
+  },
+  "nItems": "{count, plural, =1{1 item} other{{count} items}}",
+  "@nItems": {
+    "placeholders": {
+      "count": {"type": "num"}
+    }
+  },
+  "outOfStock": "Out of stock",
+  "noLongerAvailable": "No longer available",
+
+  "welcomeBack": "Welcome back",
+  "signInSubtitle": "Sign in to continue shopping.",
+  "email": "Email",
+  "password": "Password",
+  "signIn": "Sign in",
+  "noAccountCta": "Don't have an account? Sign up",
+  "createAccount": "Create account",
+  "registerSubtitle": "It only takes a moment.",
+  "fullName": "Full name",
+  "passwordHelper": "At least 8 characters.",
+  "haveAccountCta": "Already have an account? Sign in",
+  "showPassword": "Show password",
+  "hidePassword": "Hide password",
+  "signOut": "Sign out",
+
+  "validationEmailRequired": "Enter your email address.",
+  "validationEmailInvalid": "Enter a valid email address.",
+  "validationPasswordRequired": "Enter a password.",
+  "validationLoginPasswordRequired": "Enter your password.",
+  "validationNameRequired": "Enter your name.",
+  "validationUseAtLeast": "Use at least {count} characters.",
+  "@validationUseAtLeast": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "validationUseAtMost": "Use at most {count} characters.",
+  "@validationUseAtMost": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "fieldAtLeast": "At least {count} characters",
+  "@fieldAtLeast": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "fieldAtMost": "At most {count} characters",
+  "@fieldAtMost": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "countryFormatHint": "Two letters, like TR",
+
+  "searchProducts": "Search products",
+  "clearSearch": "Clear search",
+  "sort": "Sort",
+  "sortNewest": "Newest",
+  "sortPriceLowHigh": "Price: low to high",
+  "sortPriceHighLow": "Price: high to low",
+  "priceFilter": "Price filter",
+  "cart": "Cart",
+  "profile": "Profile",
+  "myOrders": "My orders",
+  "favorites": "Favorites",
+  "allCategories": "All",
+  "noProductsFound": "No products found",
+  "noProductsHint": "Try a different search or clear the filters.",
+  "couldNotLoadMore": "Could not load more products.",
+  "priceRange": "Price range",
+  "minLabel": "Min",
+  "maxLabel": "Max",
+  "minExceedsMax": "The minimum cannot exceed the maximum.",
+  "clearFilter": "Clear filter",
+
+  "product": "Product",
+  "inStock": "In stock",
+  "description": "Description",
+  "addToCart": "Add to cart",
+  "addedToCart": "Added to cart",
+  "viewCart": "View cart",
+  "productUnavailable": "This product is no longer available.",
+  "addToFavorites": "Add to favorites",
+  "removeFromFavorites": "Remove from favorites",
+  "reviews": "Reviews",
+  "noReviewsYet": "No reviews yet",
+  "nReviews": "{count, plural, =1{1 review} other{{count} reviews}}",
+  "@nReviews": {
+    "placeholders": {
+      "count": {"type": "num"}
+    }
+  },
+
+  "cartEmptyTitle": "Your cart is empty",
+  "cartEmptyHint": "Everything you add ends up here.",
+  "clearCart": "Clear cart",
+  "clearCartTitle": "Clear the cart?",
+  "clearCartBody": "Every item will be removed.",
+  "onlyNLeftInStock": "Only {count} left in stock",
+  "@onlyNLeftInStock": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "decreaseQuantity": "Decrease quantity",
+  "increaseQuantity": "Increase quantity",
+  "checkout": "Checkout",
+
+  "checkoutEmptyHint": "Add something before checking out.",
+  "noDeliveryAddress": "No delivery address yet.",
+  "manageAddresses": "Manage addresses",
+  "couponCode": "Coupon code",
+  "removeCoupon": "Remove coupon",
+  "payAmount": "Pay {amount}",
+  "@payAmount": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "paymentNotCompleted": "Payment not completed",
+  "paymentPendingBody": "Order #{reference} is placed and waiting for its payment of {amount}.",
+  "@paymentPendingBody": {
+    "placeholders": {
+      "reference": {"type": "String"},
+      "amount": {"type": "String"}
+    }
+  },
+  "payNow": "Pay now",
+  "backToCatalog": "Back to the catalog",
+  "paymentReceived": "Payment received",
+  "paymentSuccessBody": "Order #{reference} — {amount}. We are preparing it now.",
+  "@paymentSuccessBody": {
+    "placeholders": {
+      "reference": {"type": "String"},
+      "amount": {"type": "String"}
+    }
+  },
+  "continueShopping": "Continue shopping",
+  "viewMyOrders": "View my orders",
+
+  "order": "Order",
+  "noOrdersYet": "No orders yet",
+  "noOrdersHint": "Everything you buy shows up here.",
+  "orderRef": "Order #{reference}",
+  "@orderRef": {
+    "placeholders": {
+      "reference": {"type": "String"}
+    }
+  },
+  "placedOn": "Placed {date}",
+  "@placedOn": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "items": "Items",
+  "statusPending": "Pending",
+  "statusPaid": "Paid",
+  "statusPreparing": "Preparing",
+  "statusShipped": "Shipped",
+  "statusDelivered": "Delivered",
+  "statusCancelled": "Cancelled",
+  "statusRefunded": "Refunded",
+  "stepOrderPlaced": "Order placed",
+  "stepPaymentConfirmed": "Payment confirmed",
+  "orderCancelledBanner": "This order was cancelled.",
+  "orderRefundedBanner": "This order was refunded.",
+
+  "nothingSavedYet": "Nothing saved yet",
+  "favoritesHint": "Tap the heart on a product to keep it here.",
+
+  "addresses": "Addresses",
+  "language": "Language",
+  "systemDefault": "System default",
+  "languageEnglish": "English",
+  "languageTurkish": "Türkçe",
+
+  "addAddress": "Add address",
+  "noAddressesYet": "No addresses yet",
+  "noAddressesHint": "Save one to speed through checkout.",
+  "defaultBadge": "Default",
+  "setAsDefault": "Set as default",
+  "deleteAddressTitle": "Delete this address?",
+  "newAddress": "New address",
+  "editAddress": "Edit address",
+  "phone": "Phone",
+  "addressLine": "Address line",
+  "addressLine2Optional": "Address line 2 (optional)",
+  "district": "District",
+  "city": "City",
+  "postalCode": "Postal code",
+  "countryIso": "Country (ISO-2)",
+  "useAsDefaultAddress": "Use as default address",
+  "thisIsDefaultAddress": "This is your default address.",
+  "saveAddress": "Save address",
+
+  "writeReview": "Write a review",
+  "editYourReview": "Edit your review",
+  "beFirstToReview": "Purchased this product? Be the first to review it.",
+  "commentOptional": "Comment (optional)",
+  "submitReview": "Submit review",
+  "deleteMyReview": "Delete my review"
+}

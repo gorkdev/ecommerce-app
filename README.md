@@ -102,7 +102,7 @@ as those milestones land.
   - [x] Orders & tracking (history, fulfilment timeline, charged totals)
   - [x] Profile & addresses (account hub, address book, checkout address picker)
   - [x] Reviews & ratings (summary with distribution, verified-buyer write/edit)
-- [ ] **M11** — Internationalization (i18n)
+- [x] **M11** — Internationalization (English + Turkish, in-app language picker) — widget + unit tested
 - [ ] **M12** — Push notifications (FCM)
 - [ ] **M13** — Polish (seed data, tests, screenshots, CI)
 

@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../support/test_app.dart';
+
 class MockCartRepository extends Mock implements CartRepository {}
 
 const ProductSummary _mug = ProductSummary(
@@ -63,7 +65,7 @@ void main() {
         // Mirrors main.dart: automatic provider retry stays off in tests.
         retry: (int retryCount, Object error) => null,
         overrides: [cartRepositoryProvider.overrideWithValue(repository)],
-        child: const MaterialApp(home: CartScreen()),
+        child: testApp(home: const CartScreen()),
       ),
     );
     await tester.pumpAndSettle();

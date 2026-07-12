@@ -14,6 +14,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../support/test_app.dart';
+
 class MockCatalogRepository extends Mock implements CatalogRepository {}
 
 class MockCartRepository extends Mock implements CartRepository {}
@@ -90,8 +92,8 @@ void main() {
           favoritesRepositoryProvider.overrideWithValue(favoritesRepository),
           reviewsRepositoryProvider.overrideWithValue(reviewsRepository),
         ],
-        child: const MaterialApp(
-          home: ProductDetailScreen(slug: 'wireless-headphones'),
+        child: testApp(
+          home: const ProductDetailScreen(slug: 'wireless-headphones'),
         ),
       ),
     );

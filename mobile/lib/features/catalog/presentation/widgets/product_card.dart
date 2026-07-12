@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/config/app_config.dart';
+import '../../../../core/l10n/l10n.dart';
 import '../../../../core/network/api_exception.dart';
 import '../../../favorites/application/favorites_controller.dart';
 import '../../domain/product.dart';
@@ -56,7 +57,7 @@ class ProductCard extends StatelessWidget {
                   if (!product.inStock) ...<Widget>[
                     const SizedBox(height: 2),
                     Text(
-                      'Out of stock',
+                      context.l10n.outOfStock,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: theme.colorScheme.error,
                       ),
@@ -90,7 +91,9 @@ class _FavoriteButton extends ConsumerWidget {
       child: IconButton(
         visualDensity: VisualDensity.compact,
         iconSize: 20,
-        tooltip: saved ? 'Remove from favorites' : 'Add to favorites',
+        tooltip: saved
+            ? context.l10n.removeFromFavorites
+            : context.l10n.addToFavorites,
         icon: Icon(
           saved ? Icons.favorite : Icons.favorite_outline,
           color: saved
@@ -109,9 +112,9 @@ class _FavoriteButton extends ConsumerWidget {
           .toggle(ProductSummary.of(product));
     } on ApiException catch (error) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.errorText(error))),
+      );
     }
   }
 }

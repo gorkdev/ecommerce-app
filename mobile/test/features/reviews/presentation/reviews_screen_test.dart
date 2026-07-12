@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../support/test_app.dart';
+
 class MockReviewsRepository extends Mock implements ReviewsRepository {}
 
 // Local timestamps keep the rendered dates machine-independent.
@@ -66,8 +68,8 @@ void main() {
         // Mirrors main.dart: automatic provider retry stays off in tests.
         retry: (int retryCount, Object error) => null,
         overrides: [reviewsRepositoryProvider.overrideWithValue(repository)],
-        child: const MaterialApp(
-          home: ReviewsScreen(
+        child: testApp(
+          home: const ReviewsScreen(
             productId: 'prd_1',
             productName: 'Wireless Headphones',
           ),

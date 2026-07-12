@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/l10n.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../shared/validation/validators.dart';
 import '../application/auth_controller.dart';
@@ -62,6 +63,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final AppLocalizations l10n = context.l10n;
 
     return Scaffold(
       body: SafeArea(
@@ -76,12 +78,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
                     Text(
-                      'Create account',
+                      l10n.createAccount,
                       style: theme.textTheme.headlineMedium,
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'It only takes a moment.',
+                      l10n.registerSubtitle,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -97,8 +99,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       textCapitalization: TextCapitalization.words,
                       autofillHints: const <String>[AutofillHints.name],
                       textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(labelText: 'Full name'),
-                      validator: Validators.name,
+                      decoration: InputDecoration(labelText: l10n.fullName),
+                      validator: Validators.name(l10n),
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -108,8 +110,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       autocorrect: false,
                       autofillHints: const <String>[AutofillHints.newUsername],
                       textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(labelText: 'Email'),
-                      validator: Validators.email,
+                      decoration: InputDecoration(labelText: l10n.email),
+                      validator: Validators.email(l10n),
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -120,8 +122,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: (_) => _submit(),
                       decoration: InputDecoration(
-                        labelText: 'Password',
-                        helperText: 'At least 8 characters.',
+                        labelText: l10n.password,
+                        helperText: l10n.passwordHelper,
                         suffixIcon: IconButton(
                           onPressed: () => setState(
                             () => _obscurePassword = !_obscurePassword,
@@ -132,11 +134,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 : Icons.visibility_off_outlined,
                           ),
                           tooltip: _obscurePassword
-                              ? 'Show password'
-                              : 'Hide password',
+                              ? l10n.showPassword
+                              : l10n.hidePassword,
                         ),
                       ),
-                      validator: Validators.password,
+                      validator: Validators.password(l10n),
                     ),
                     const SizedBox(height: 24),
                     FilledButton(
@@ -146,14 +148,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               dimension: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Create account'),
+                          : Text(l10n.createAccount),
                     ),
                     const SizedBox(height: 12),
                     TextButton(
                       onPressed: _submitting
                           ? null
                           : () => context.go(LoginScreen.path),
-                      child: const Text('Already have an account? Sign in'),
+                      child: Text(l10n.haveAccountCta),
                     ),
                   ],
                 ),

@@ -14,6 +14,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../support/test_app.dart';
+
 class MockCatalogRepository extends Mock implements CatalogRepository {}
 
 class MockCartRepository extends Mock implements CartRepository {}
@@ -91,7 +93,7 @@ void main() {
           cartRepositoryProvider.overrideWithValue(cartRepository),
           favoritesRepositoryProvider.overrideWithValue(favoritesRepository),
         ],
-        child: const MaterialApp(home: CatalogScreen()),
+        child: testApp(home: const CatalogScreen()),
       ),
     );
     await tester.pumpAndSettle();

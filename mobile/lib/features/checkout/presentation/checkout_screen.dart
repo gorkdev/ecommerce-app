@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/l10n.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../shared/formatting/price_formatter.dart';
 import '../../../shared/widgets/empty_view.dart';
@@ -31,7 +32,7 @@ class CheckoutScreen extends ConsumerWidget {
     final CheckoutState state = ref.watch(checkoutControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Checkout')),
+      appBar: AppBar(title: Text(context.l10n.checkout)),
       body: switch (state) {
         CheckoutSuccess(:final Order order) => _SuccessView(order),
         CheckoutPaymentPending(:final Order order) => _PaymentPendingView(order),
@@ -93,11 +94,11 @@ class _ReviewViewState extends ConsumerState<_ReviewView> {
     if (cart.isEmpty) {
       return EmptyView(
         icon: Icons.shopping_cart_outlined,
-        title: 'Your cart is empty',
-        subtitle: 'Add something before checking out.',
+        title: context.l10n.cartEmptyTitle,
+        subtitle: context.l10n.checkoutEmptyHint,
         action: FilledButton.tonal(
           onPressed: () => context.go(CatalogScreen.path),
-          child: const Text('Browse products'),
+          child: Text(context.l10n.browseProducts),
         ),
       );
     }
@@ -137,7 +138,7 @@ class _ReviewViewState extends ConsumerState<_ReviewView> {
               ),
               const Divider(height: 32),
               _TotalRow(
-                label: 'Subtotal',
+                label: context.l10n.subtotal,
                 amount: PriceFormatter.format(
                   coupon?.subtotal ?? cart.summary.subtotal,
                   currency,
@@ -145,13 +146,13 @@ class _ReviewViewState extends ConsumerState<_ReviewView> {
               ),
               if (coupon != null)
                 _TotalRow(
-                  label: 'Discount (${coupon.code})',
+                  label: context.l10n.discountWithCode(coupon.code),
                   amount:
                       '−${PriceFormatter.format(coupon.discount, currency)}',
                 ),
               const SizedBox(height: 4),
               _TotalRow(
-                label: 'Total',
+                label: context.l10n.total,
                 amount: PriceFormatter.format(total, currency),
                 emphasized: true,
               ),
@@ -166,7 +167,11 @@ class _ReviewViewState extends ConsumerState<_ReviewView> {
                     dimension: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Text('Pay ${PriceFormatter.format(total, currency)}'),
+                : Text(
+                    context.l10n.payAmount(
+                      PriceFormatter.format(total, currency),
+                    ),
+                  ),
           ),
         ),
       ],
@@ -180,7 +185,7 @@ class _ReviewViewState extends ConsumerState<_ReviewView> {
     try {
       await ref.read(checkoutControllerProvider.notifier).applyCoupon(code);
     } on ApiException catch (error) {
-      if (mounted) _showMessage(error.message);
+      if (mounted) _showMessage(context.l10n.errorText(error));
     } finally {
       if (mounted) setState(() => _applyingCoupon = false);
     }
@@ -209,7 +214,7 @@ class _ReviewViewState extends ConsumerState<_ReviewView> {
                 Navigator.of(sheetContext).pop();
                 context.push(AddressesScreen.path);
               },
-              child: const Text('Manage addresses'),
+              child: Text(context.l10n.manageAddresses),
             ),
           ],
         ),
@@ -231,8 +236,9 @@ class _ReviewViewState extends ConsumerState<_ReviewView> {
           .read(checkoutControllerProvider.notifier)
           .payNow(addressId: deliverTo?.id);
     } on ApiException catch (error) {
-      if (mounted) _showMessage(error.message);
+      if (mounted) _showMessage(context.l10n.errorText(error));
     } on PaymentException catch (error) {
+      // Stripe already localizes its own failure messages.
       if (mounted) _showMessage(error.message);
     } finally {
       if (mounted) setState(() => _paying = false);
@@ -267,7 +273,7 @@ class _DeliverToCard extends StatelessWidget {
         Expanded(
           child: deliverTo == null
               ? Text(
-                  'No delivery address yet.',
+                  context.l10n.noDeliveryAddress,
                   style: theme.textTheme.bodyMedium,
                 )
               : Column(
@@ -288,7 +294,9 @@ class _DeliverToCard extends StatelessWidget {
         ),
         TextButton(
           onPressed: onChange,
-          child: Text(deliverTo == null ? 'Add' : 'Change'),
+          child: Text(
+            deliverTo == null ? context.l10n.add : context.l10n.change,
+          ),
         ),
       ],
     );
@@ -362,7 +370,7 @@ class _CouponSection extends StatelessWidget {
             child: Text(applied.code, style: theme.textTheme.titleSmall),
           ),
           IconButton(
-            tooltip: 'Remove coupon',
+            tooltip: context.l10n.removeCoupon,
             icon: const Icon(Icons.close),
             onPressed: onRemove,
           ),
@@ -377,10 +385,10 @@ class _CouponSection extends StatelessWidget {
           child: TextField(
             controller: controller,
             textCapitalization: TextCapitalization.characters,
-            decoration: const InputDecoration(
-              labelText: 'Coupon code',
+            decoration: InputDecoration(
+              labelText: context.l10n.couponCode,
               isDense: true,
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
             ),
             onSubmitted: (_) => onApply(),
           ),
@@ -393,7 +401,7 @@ class _CouponSection extends StatelessWidget {
                   dimension: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Apply'),
+              : Text(context.l10n.apply),
         ),
       ],
     );
@@ -463,14 +471,16 @@ class _PaymentPendingViewState extends ConsumerState<_PaymentPendingView> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Payment not completed',
+              context.l10n.paymentNotCompleted,
               style: theme.textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              'Order #${order.reference} is placed and waiting for its '
-              'payment of ${PriceFormatter.format(order.total, order.currency)}.',
+              context.l10n.paymentPendingBody(
+                order.reference,
+                PriceFormatter.format(order.total, order.currency),
+              ),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -484,11 +494,11 @@ class _PaymentPendingViewState extends ConsumerState<_PaymentPendingView> {
                       dimension: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Pay now'),
+                  : Text(context.l10n.payNow),
             ),
             TextButton(
               onPressed: () => context.go(CatalogScreen.path),
-              child: const Text('Back to the catalog'),
+              child: Text(context.l10n.backToCatalog),
             ),
           ],
         ),
@@ -501,8 +511,9 @@ class _PaymentPendingViewState extends ConsumerState<_PaymentPendingView> {
     try {
       await ref.read(checkoutControllerProvider.notifier).payNow();
     } on ApiException catch (error) {
-      if (mounted) _showMessage(error.message);
+      if (mounted) _showMessage(context.l10n.errorText(error));
     } on PaymentException catch (error) {
+      // Stripe already localizes its own failure messages.
       if (mounted) _showMessage(error.message);
     } finally {
       if (mounted) setState(() => _paying = false);
@@ -540,15 +551,16 @@ class _SuccessView extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Payment received',
+              context.l10n.paymentReceived,
               style: theme.textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              'Order #${order.reference} — '
-              '${PriceFormatter.format(order.total, order.currency)}. '
-              'We are preparing it now.',
+              context.l10n.paymentSuccessBody(
+                order.reference,
+                PriceFormatter.format(order.total, order.currency),
+              ),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -557,12 +569,12 @@ class _SuccessView extends StatelessWidget {
             const SizedBox(height: 24),
             FilledButton(
               onPressed: () => context.go(CatalogScreen.path),
-              child: const Text('Continue shopping'),
+              child: Text(context.l10n.continueShopping),
             ),
             TextButton(
               // Replace the finished checkout so back lands on the cart.
               onPressed: () => context.pushReplacement(OrdersScreen.path),
-              child: const Text('View my orders'),
+              child: Text(context.l10n.viewMyOrders),
             ),
           ],
         ),

@@ -9,6 +9,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../support/test_app.dart';
+
 class MockAddressesRepository extends Mock implements AddressesRepository {}
 
 // AddressInput is a final class, so mocktail's fallback is a real instance.
@@ -72,7 +74,7 @@ void main() {
         // Mirrors main.dart: automatic provider retry stays off in tests.
         retry: (int retryCount, Object error) => null,
         overrides: [addressesRepositoryProvider.overrideWithValue(repository)],
-        child: MaterialApp.router(routerConfig: router),
+        child: testApp(router: router),
       ),
     );
     unawaited(router.push(AddressFormScreen.path));

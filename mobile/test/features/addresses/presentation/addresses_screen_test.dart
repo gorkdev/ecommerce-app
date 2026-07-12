@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../support/test_app.dart';
+
 class MockAddressesRepository extends Mock implements AddressesRepository {}
 
 const Address _home = Address(
@@ -51,7 +53,7 @@ void main() {
         // Mirrors main.dart: automatic provider retry stays off in tests.
         retry: (int retryCount, Object error) => null,
         overrides: [addressesRepositoryProvider.overrideWithValue(repository)],
-        child: const MaterialApp(home: AddressesScreen()),
+        child: testApp(home: const AddressesScreen()),
       ),
     );
     await tester.pumpAndSettle();

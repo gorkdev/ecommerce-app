@@ -12,6 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../support/in_memory_token_storage.dart';
+import '../../../support/test_app.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
 
@@ -42,7 +43,7 @@ void main() {
           authRepositoryProvider.overrideWithValue(repository),
           tokenStorageProvider.overrideWithValue(storage),
         ],
-        child: const MaterialApp(home: LoginScreen()),
+        child: testApp(home: const LoginScreen()),
       ),
     );
     await tester.pump();

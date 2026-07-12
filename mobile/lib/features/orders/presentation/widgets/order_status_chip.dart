@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/l10n/l10n.dart';
 import '../../domain/order.dart';
+import 'order_status_label.dart';
 
 /// A compact, color-coded label for an order's lifecycle state.
 class OrderStatusChip extends StatelessWidget {
@@ -37,7 +39,7 @@ class OrderStatusChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        status.label,
+        status.label(context.l10n),
         style: Theme.of(
           context,
         ).textTheme.labelSmall?.copyWith(color: foreground),

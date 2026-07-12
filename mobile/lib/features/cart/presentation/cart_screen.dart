@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/l10n.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../shared/formatting/price_formatter.dart';
 import '../../../shared/widgets/empty_view.dart';
@@ -26,11 +27,11 @@ class CartScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cart'),
+        title: Text(context.l10n.cart),
         actions: <Widget>[
           if (cart != null && !cart.isEmpty)
             IconButton(
-              tooltip: 'Clear cart',
+              tooltip: context.l10n.clearCart,
               icon: const Icon(Icons.delete_sweep_outlined),
               onPressed: () => _confirmClear(context, ref),
             ),
@@ -59,11 +60,11 @@ class CartScreen extends ConsumerWidget {
     if (cart.isEmpty) {
       return EmptyView(
         icon: Icons.shopping_cart_outlined,
-        title: 'Your cart is empty',
-        subtitle: 'Everything you add ends up here.',
+        title: context.l10n.cartEmptyTitle,
+        subtitle: context.l10n.cartEmptyHint,
         action: FilledButton.tonal(
           onPressed: () => context.go(CatalogScreen.path),
-          child: const Text('Browse products'),
+          child: Text(context.l10n.browseProducts),
         ),
       );
     }
@@ -84,19 +85,20 @@ class CartScreen extends ConsumerWidget {
   }
 
   Future<void> _confirmClear(BuildContext context, WidgetRef ref) async {
+    final AppLocalizations l10n = context.l10n;
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext dialogContext) => AlertDialog(
-        title: const Text('Clear the cart?'),
-        content: const Text('Every item will be removed.'),
+        title: Text(l10n.clearCartTitle),
+        content: Text(l10n.clearCartBody),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Clear'),
+            child: Text(l10n.clear),
           ),
         ],
       ),
@@ -107,9 +109,9 @@ class CartScreen extends ConsumerWidget {
       await ref.read(cartControllerProvider.notifier).clear();
     } on ApiException catch (error) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.errorText(error))),
+      );
     }
   }
 }
@@ -123,9 +125,9 @@ class _CartItemTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final String? warning = !item.product.isActive
-        ? 'No longer available'
+        ? context.l10n.noLongerAvailable
         : item.quantity > item.product.stock
-        ? 'Only ${item.product.stock} left in stock'
+        ? context.l10n.onlyNLeftInStock(item.product.stock)
         : null;
 
     return Dismissible(
@@ -208,9 +210,9 @@ class _CartItemTile extends ConsumerWidget {
       return true;
     } on ApiException catch (error) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.errorText(error))),
+        );
       }
       return false;
     }
@@ -236,7 +238,9 @@ class _QuantityStepper extends ConsumerWidget {
         IconButton(
           visualDensity: VisualDensity.compact,
           iconSize: 20,
-          tooltip: item.quantity == 1 ? 'Remove' : 'Decrease quantity',
+          tooltip: item.quantity == 1
+              ? context.l10n.remove
+              : context.l10n.decreaseQuantity,
           icon: Icon(
             item.quantity == 1 ? Icons.delete_outline : Icons.remove,
           ),
@@ -259,7 +263,7 @@ class _QuantityStepper extends ConsumerWidget {
         IconButton(
           visualDensity: VisualDensity.compact,
           iconSize: 20,
-          tooltip: 'Increase quantity',
+          tooltip: context.l10n.increaseQuantity,
           icon: const Icon(Icons.add),
           onPressed: !canIncrease
               ? null
@@ -283,9 +287,9 @@ class _QuantityStepper extends ConsumerWidget {
       await action(ref.read(cartControllerProvider.notifier));
     } on ApiException catch (error) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.errorText(error))),
+      );
     }
   }
 }
@@ -314,11 +318,12 @@ class _CartSummaryBar extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text('Subtotal', style: theme.textTheme.titleMedium),
                         Text(
-                          summary.itemCount == 1
-                              ? '1 item'
-                              : '${summary.itemCount} items',
+                          context.l10n.subtotal,
+                          style: theme.textTheme.titleMedium,
+                        ),
+                        Text(
+                          context.l10n.nItems(summary.itemCount),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -337,7 +342,7 @@ class _CartSummaryBar extends StatelessWidget {
               const SizedBox(height: 12),
               FilledButton(
                 onPressed: () => context.push(CheckoutScreen.path),
-                child: const Text('Checkout'),
+                child: Text(context.l10n.checkout),
               ),
             ],
           ),

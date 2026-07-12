@@ -2,10 +2,11 @@ import 'package:ecommerce_app/core/network/api_exception.dart';
 import 'package:ecommerce_app/features/orders/data/orders_repository.dart';
 import 'package:ecommerce_app/features/orders/domain/order.dart';
 import 'package:ecommerce_app/features/orders/presentation/orders_screen.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+
+import '../../../support/test_app.dart';
 
 class MockOrdersRepository extends Mock implements OrdersRepository {}
 
@@ -52,7 +53,7 @@ void main() {
         // Mirrors main.dart: automatic provider retry stays off in tests.
         retry: (int retryCount, Object error) => null,
         overrides: [ordersRepositoryProvider.overrideWithValue(repository)],
-        child: const MaterialApp(home: OrdersScreen()),
+        child: testApp(home: const OrdersScreen()),
       ),
     );
     await tester.pumpAndSettle();

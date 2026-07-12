@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../core/network/api_exception.dart';
+import '../../core/l10n/l10n.dart';
 
 /// Centered full-body error state with an optional retry.
 class ErrorView extends StatelessWidget {
@@ -22,11 +22,7 @@ class ErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final String text =
-        message ??
-        (error is ApiException
-            ? (error! as ApiException).message
-            : 'Something went wrong.');
+    final String text = message ?? context.l10n.errorText(error);
 
     return Center(
       child: Padding(
@@ -45,7 +41,7 @@ class ErrorView extends StatelessWidget {
               const SizedBox(height: 16),
               FilledButton.tonal(
                 onPressed: onRetry,
-                child: const Text('Try again'),
+                child: Text(context.l10n.tryAgain),
               ),
             ],
           ],

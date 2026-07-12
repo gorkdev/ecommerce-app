@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/l10n/l10n.dart';
+
 /// What [PriceFilterSheet] pops with. A dismissed sheet pops `null` instead,
 /// which callers must treat as "leave the filter alone".
 typedef PriceRange = ({double? min, double? max});
@@ -47,7 +49,7 @@ class _PriceFilterSheetState extends State<PriceFilterSheet> {
     final double? min = double.tryParse(_min.text.trim());
     final double? max = double.tryParse(_max.text.trim());
     if (min != null && max != null && min > max) {
-      setState(() => _error = 'The minimum cannot exceed the maximum.');
+      setState(() => _error = context.l10n.minExceedsMax);
       return;
     }
     Navigator.of(context).pop<PriceRange>((min: min, max: max));
@@ -56,6 +58,7 @@ class _PriceFilterSheetState extends State<PriceFilterSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final AppLocalizations l10n = context.l10n;
 
     return Padding(
       // Keeps the fields above the keyboard.
@@ -69,7 +72,7 @@ class _PriceFilterSheetState extends State<PriceFilterSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Text('Price range', style: theme.textTheme.titleMedium),
+          Text(l10n.priceRange, style: theme.textTheme.titleMedium),
           const SizedBox(height: 16),
           Row(
             children: <Widget>[
@@ -79,7 +82,7 @@ class _PriceFilterSheetState extends State<PriceFilterSheet> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  decoration: const InputDecoration(labelText: 'Min'),
+                  decoration: InputDecoration(labelText: l10n.minLabel),
                 ),
               ),
               const SizedBox(width: 12),
@@ -89,7 +92,7 @@ class _PriceFilterSheetState extends State<PriceFilterSheet> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  decoration: const InputDecoration(labelText: 'Max'),
+                  decoration: InputDecoration(labelText: l10n.maxLabel),
                 ),
               ),
             ],
@@ -104,12 +107,12 @@ class _PriceFilterSheetState extends State<PriceFilterSheet> {
             ),
           ],
           const SizedBox(height: 20),
-          FilledButton(onPressed: _apply, child: const Text('Apply')),
+          FilledButton(onPressed: _apply, child: Text(l10n.apply)),
           const SizedBox(height: 8),
           TextButton(
             onPressed: () =>
                 Navigator.of(context).pop<PriceRange>((min: null, max: null)),
-            child: const Text('Clear filter'),
+            child: Text(l10n.clearFilter),
           ),
         ],
       ),

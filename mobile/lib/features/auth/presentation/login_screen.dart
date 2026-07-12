@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/l10n.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../shared/validation/validators.dart';
 import '../application/auth_controller.dart';
@@ -58,6 +59,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final AppLocalizations l10n = context.l10n;
 
     return Scaffold(
       body: SafeArea(
@@ -71,10 +73,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    Text('Welcome back', style: theme.textTheme.headlineMedium),
+                    Text(l10n.welcomeBack, style: theme.textTheme.headlineMedium),
                     const SizedBox(height: 4),
                     Text(
-                      'Sign in to continue shopping.',
+                      l10n.signInSubtitle,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -91,8 +93,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       autocorrect: false,
                       autofillHints: const <String>[AutofillHints.email],
                       textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(labelText: 'Email'),
-                      validator: Validators.email,
+                      decoration: InputDecoration(labelText: l10n.email),
+                      validator: Validators.email(l10n),
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -103,7 +105,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: (_) => _submit(),
                       decoration: InputDecoration(
-                        labelText: 'Password',
+                        labelText: l10n.password,
                         suffixIcon: IconButton(
                           onPressed: () => setState(
                             () => _obscurePassword = !_obscurePassword,
@@ -114,11 +116,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 : Icons.visibility_off_outlined,
                           ),
                           tooltip: _obscurePassword
-                              ? 'Show password'
-                              : 'Hide password',
+                              ? l10n.showPassword
+                              : l10n.hidePassword,
                         ),
                       ),
-                      validator: Validators.loginPassword,
+                      validator: Validators.loginPassword(l10n),
                     ),
                     const SizedBox(height: 24),
                     FilledButton(
@@ -128,14 +130,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               dimension: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Sign in'),
+                          : Text(l10n.signIn),
                     ),
                     const SizedBox(height: 12),
                     TextButton(
                       onPressed: _submitting
                           ? null
                           : () => context.go(RegisterScreen.path),
-                      child: const Text("Don't have an account? Sign up"),
+                      child: Text(l10n.noAccountCta),
                     ),
                   ],
                 ),

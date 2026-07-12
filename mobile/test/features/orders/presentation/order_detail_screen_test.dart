@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../support/test_app.dart';
+
 class MockOrdersRepository extends Mock implements OrdersRepository {}
 
 Order _order({OrderStatus status = OrderStatus.paid}) => Order(
@@ -48,7 +50,7 @@ void main() {
         // Mirrors main.dart: automatic provider retry stays off in tests.
         retry: (int retryCount, Object error) => null,
         overrides: [ordersRepositoryProvider.overrideWithValue(repository)],
-        child: const MaterialApp(home: OrderDetailScreen(orderId: 'ord_1')),
+        child: testApp(home: const OrderDetailScreen(orderId: 'ord_1')),
       ),
     );
     await tester.pumpAndSettle();
@@ -62,7 +64,7 @@ void main() {
     await pumpDetail(tester);
 
     expect(find.text('Order #ORD_1'), findsOneWidget);
-    expect(find.text('Placed Jul 11, 2026 · 09:30'), findsOneWidget);
+    expect(find.text('Placed Jul 11, 2026 09:30'), findsOneWidget);
     expect(find.text('Paid'), findsOneWidget);
     expect(find.text('Ceramic Mug'), findsOneWidget);
     expect(find.text('2 × ₺49.90'), findsOneWidget);

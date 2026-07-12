@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/config/app_config.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../shared/widgets/error_view.dart';
 import '../../cart/application/cart_controller.dart';
@@ -44,7 +45,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(product?.name ?? 'Product'),
+        title: Text(product?.name ?? context.l10n.product),
         actions: <Widget>[
           if (product != null) _FavoriteAction(product),
         ],
@@ -58,7 +59,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           return ErrorView(
             error: error,
             icon: gone ? Icons.inventory_2_outlined : Icons.wifi_off_outlined,
-            message: gone ? 'This product is no longer available.' : null,
+            message: gone ? context.l10n.productUnavailable : null,
             onRetry: gone
                 ? null
                 : () => ref.invalidate(productDetailProvider(widget.slug)),
@@ -152,7 +153,9 @@ class _DetailBody extends StatelessWidget {
             ),
             const SizedBox(width: 6),
             Text(
-              product.inStock ? 'In stock' : 'Out of stock',
+              product.inStock
+                  ? context.l10n.inStock
+                  : context.l10n.outOfStock,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: product.inStock
                     ? theme.colorScheme.onSurface
@@ -164,7 +167,7 @@ class _DetailBody extends StatelessWidget {
         const SizedBox(height: 12),
         _ReviewsTile(product),
         const SizedBox(height: 12),
-        Text('Description', style: theme.textTheme.titleMedium),
+        Text(context.l10n.description, style: theme.textTheme.titleMedium),
         const SizedBox(height: 8),
         Text(
           product.description,
@@ -184,6 +187,7 @@ class _ReviewsTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final AppLocalizations l10n = context.l10n;
     final RatingSummary? summary = ref
         .watch(productReviewsProvider(product.id))
         .value
@@ -204,11 +208,11 @@ class _ReviewsTile extends ConsumerWidget {
             Expanded(
               child: Text(
                 summary == null
-                    ? 'Reviews'
+                    ? l10n.reviews
                     : summary.count == 0
-                    ? 'No reviews yet'
+                    ? l10n.noReviewsYet
                     : '${summary.average.toStringAsFixed(1)} · '
-                          '${summary.count == 1 ? '1 review' : '${summary.count} reviews'}',
+                          '${l10n.nReviews(summary.count)}',
                 style: theme.textTheme.bodyMedium,
               ),
             ),
@@ -303,7 +307,9 @@ class _FavoriteAction extends ConsumerWidget {
         .contains(product.id);
 
     return IconButton(
-      tooltip: saved ? 'Remove from favorites' : 'Add to favorites',
+      tooltip: saved
+          ? context.l10n.removeFromFavorites
+          : context.l10n.addToFavorites,
       icon: Icon(
         saved ? Icons.favorite : Icons.favorite_outline,
         color: saved ? theme.colorScheme.error : null,
@@ -319,9 +325,9 @@ class _FavoriteAction extends ConsumerWidget {
           .toggle(ProductSummary.of(product));
     } on ApiException catch (error) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.errorText(error))),
+      );
     }
   }
 }
@@ -347,18 +353,18 @@ class _AddToCartBarState extends ConsumerState<_AddToCartBar> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Added to cart'),
+          content: Text(context.l10n.addedToCart),
           action: SnackBarAction(
-            label: 'View cart',
+            label: context.l10n.viewCart,
             onPressed: () => context.push(CartScreen.path),
           ),
         ),
       );
     } on ApiException catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.errorText(error))),
+      );
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -381,7 +387,11 @@ class _AddToCartBarState extends ConsumerState<_AddToCartBar> {
                     dimension: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Text(inStock ? 'Add to cart' : 'Out of stock'),
+                : Text(
+                    inStock
+                        ? context.l10n.addToCart
+                        : context.l10n.outOfStock,
+                  ),
           ),
         ),
       ),

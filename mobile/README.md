@@ -27,6 +27,12 @@ Milestone **M10** is in progress, slice by slice.
 
 All M10 slices are done — the customer flow is complete end to end.
 
+Milestone **M11** — internationalization — is also done:
+
+- [x] i18n — every user-facing string localized (English + Turkish),
+      locale-aware dates, an in-app language picker on the profile screen
+      with the choice persisted across launches
+
 ## Layout
 
 ```
@@ -46,6 +52,21 @@ cannot resolve against Riverpod 3.
 Riverpod 3's automatic provider retry is disabled at the root `ProviderScope`:
 every failing surface has explicit retry UX instead (retry buttons,
 pull-to-refresh), and background retries would re-hammer a struggling API.
+
+## Localization
+
+Strings live in ARB tables under `lib/l10n/` (`app_en.arb` is the template,
+`app_tr.arb` the Turkish translation). Flutter's built-in `gen_l10n` compiles
+them into `lib/l10n/generated/` on every `flutter pub get` and build — no
+build_runner involved. To add a language: create `app_<code>.arb`, translate
+every key, and list the locale in `ios/Runner/Info.plist`.
+
+The app follows the device language by default; the profile screen has a
+language picker whose choice is persisted (`shared_preferences`) and applied
+app-wide immediately. Dates format through locale-aware skeletons, so field
+order adapts per language. One deliberate boundary: messages authored by the
+API (validation errors, business rules) surface verbatim — the server is the
+authority on what went wrong.
 
 ## Running
 
