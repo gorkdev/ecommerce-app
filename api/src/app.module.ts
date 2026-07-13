@@ -12,6 +12,7 @@ import { FavoriteModule } from './favorite/favorite.module';
 import { OrderModule } from './order/order.module';
 import { ReviewModule } from './review/review.module';
 import { CouponModule } from './coupon/coupon.module';
+import { NotificationModule } from './notification/notification.module';
 import { StatsModule } from './stats/stats.module';
 import { HealthController } from './health/health.controller';
 
@@ -30,6 +31,7 @@ import { HealthController } from './health/health.controller';
     OrderModule,
     ReviewModule,
     CouponModule,
+    NotificationModule,
     StatsModule,
   ],
   controllers: [HealthController],

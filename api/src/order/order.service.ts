@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { PaymentService } from '../payment/payment.service';
 import { CouponService } from '../coupon/coupon.service';
+import { NotificationService } from '../notification/notification.service';
 import { Prisma, OrderStatus } from '../generated/prisma/client';
 import { CheckoutDto } from './dto/checkout.dto';
 import { QueryOrderDto } from './dto/query-order.dto';
@@ -53,6 +54,7 @@ export class OrderService {
     private readonly prisma: PrismaService,
     private readonly payment: PaymentService,
     private readonly coupons: CouponService,
+    private readonly notifications: NotificationService,
   ) {}
 
   // Turn the user's cart into a PENDING order and open a Stripe PaymentIntent.
@@ -235,11 +237,15 @@ export class OrderService {
         `Cannot move an order from ${order.status} to ${status}`,
       );
     }
-    return this.prisma.order.update({
+    const updated = await this.prisma.order.update({
       where: { id: orderId },
       data: { status },
       include: ADMIN_ORDER_INCLUDE,
     });
+    // Fire-and-forget: the customer hears about the move, but a push outage
+    // never fails the admin's request (notifyOrderStatus swallows errors).
+    void this.notifications.notifyOrderStatus(updated.userId, updated.id, status);
+    return updated;
   }
 
   // ---- Webhook-driven state (called by the Stripe webhook controller) ----
@@ -256,6 +262,11 @@ export class OrderService {
       where: { id: order.id },
       data: { status: OrderStatus.PAID },
     });
+    void this.notifications.notifyOrderStatus(
+      order.userId,
+      order.id,
+      OrderStatus.PAID,
+    );
   }
 
   // A failed payment cancels the pending order and returns its reserved stock.
@@ -279,6 +290,11 @@ export class OrderService {
         data: { status: OrderStatus.CANCELLED },
       });
     });
+    void this.notifications.notifyOrderStatus(
+      order.userId,
+      order.id,
+      OrderStatus.CANCELLED,
+    );
   }
 
   private async ensureAddress(userId: string, addressId: string) {

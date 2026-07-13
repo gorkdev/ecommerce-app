@@ -17,3 +17,20 @@ npm run start:dev               # http://localhost:3000
 ```
 
 Module-by-module functionality lands per the roadmap in the root README.
+
+## Push notifications (FCM)
+
+Order lifecycle changes (payment confirmed, preparing, shipped, delivered,
+cancelled, refunded) are pushed to the customer's devices through Firebase
+Cloud Messaging. The mobile app registers its device token via
+`POST /notifications/tokens` (and removes it on sign-out); each token carries
+the language it wants notifications in, so the copy is rendered server-side
+in English or Turkish. Tokens Firebase reports as dead are pruned
+automatically, and a push failure never fails the request that triggered it.
+
+Setup is optional — without it the API runs normally and skips pushes:
+
+1. Create a Firebase project and generate a service-account key
+   (Project settings → Service accounts → Generate new private key).
+2. Save the JSON next to the API (it is gitignored) and point
+   `FIREBASE_SERVICE_ACCOUNT` at it in `.env`.

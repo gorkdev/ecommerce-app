@@ -17,6 +17,12 @@ pnpm-debug.log*
 .env.*.local
 !.env.example
 
+# ===== Firebase (per-developer credentials/config, never committed) =====
+*service-account*.json
+mobile/android/app/google-services.json
+mobile/ios/Runner/GoogleService-Info.plist
+mobile/lib/firebase_options.dart
+
 # ===== Prisma =====
 api/prisma/*.db
 api/prisma/migrations/dev.db*

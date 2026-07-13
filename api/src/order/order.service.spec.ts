@@ -4,6 +4,7 @@ import { OrderService } from './order.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { PaymentService } from '../payment/payment.service';
 import { CouponService } from '../coupon/coupon.service';
+import { NotificationService } from '../notification/notification.service';
 import { Prisma, OrderStatus } from '../generated/prisma/client';
 
 type PrismaMock = {
@@ -42,6 +43,7 @@ describe('OrderService', () => {
   let prisma: PrismaMock;
   let payment: { createPaymentIntent: jest.Mock };
   let coupons: { resolve: jest.Mock };
+  let notifications: { notifyOrderStatus: jest.Mock };
 
   beforeEach(async () => {
     prisma = {
@@ -74,6 +76,7 @@ describe('OrderService', () => {
     // These order tests never pass a coupon code, so a bare stub suffices;
     // coupon pricing/redemption is covered in coupon.service + the e2e flow.
     coupons = { resolve: jest.fn() };
+    notifications = { notifyOrderStatus: jest.fn().mockResolvedValue(undefined) };
 
     const moduleRef = await Test.createTestingModule({
       providers: [
@@ -81,6 +84,7 @@ describe('OrderService', () => {
         { provide: PrismaService, useValue: prisma },
         { provide: PaymentService, useValue: payment },
         { provide: CouponService, useValue: coupons },
+        { provide: NotificationService, useValue: notifications },
       ],
     }).compile();
 
@@ -165,9 +169,10 @@ describe('OrderService', () => {
   });
 
   describe('markPaid', () => {
-    it('flips a pending order to PAID', async () => {
+    it('flips a pending order to PAID and pushes the news', async () => {
       prisma.order.findUnique.mockResolvedValue({
         id: 'o1',
+        userId: 'u1',
         status: OrderStatus.PENDING,
       });
 
@@ -177,6 +182,11 @@ describe('OrderService', () => {
         where: { id: 'o1' },
         data: { status: OrderStatus.PAID },
       });
+      expect(notifications.notifyOrderStatus).toHaveBeenCalledWith(
+        'u1',
+        'o1',
+        OrderStatus.PAID,
+      );
     });
 
     it('is a no-op for an already-paid order', async () => {
@@ -188,6 +198,7 @@ describe('OrderService', () => {
       await service.markPaid('pi_123');
 
       expect(prisma.order.update).not.toHaveBeenCalled();
+      expect(notifications.notifyOrderStatus).not.toHaveBeenCalled();
     });
 
     it('ignores an unknown payment intent', async () => {
@@ -203,6 +214,7 @@ describe('OrderService', () => {
     it('cancels the order and restocks its items', async () => {
       prisma.order.findUnique.mockResolvedValue({
         id: 'o1',
+        userId: 'u1',
         status: OrderStatus.PENDING,
         items: [{ productId: 'p1', quantity: 2 }],
       });
@@ -217,6 +229,11 @@ describe('OrderService', () => {
         where: { id: 'o1' },
         data: { status: OrderStatus.CANCELLED },
       });
+      expect(notifications.notifyOrderStatus).toHaveBeenCalledWith(
+        'u1',
+        'o1',
+        OrderStatus.CANCELLED,
+      );
     });
   });
 
@@ -240,12 +257,12 @@ describe('OrderService', () => {
       ).rejects.toBeInstanceOf(BadRequestException);
     });
 
-    it('allows a legal transition', async () => {
+    it('allows a legal transition and pushes the news', async () => {
       prisma.order.findUnique.mockResolvedValue({
         id: 'o1',
         status: OrderStatus.PAID,
       });
-      prisma.order.update.mockResolvedValue({ id: 'o1' });
+      prisma.order.update.mockResolvedValue({ id: 'o1', userId: 'u1' });
 
       await service.updateStatus('o1', OrderStatus.PREPARING);
 
@@ -254,6 +271,11 @@ describe('OrderService', () => {
           where: { id: 'o1' },
           data: { status: OrderStatus.PREPARING },
         }),
+      );
+      expect(notifications.notifyOrderStatus).toHaveBeenCalledWith(
+        'u1',
+        'o1',
+        OrderStatus.PREPARING,
       );
     });
   });
