@@ -164,6 +164,12 @@ abstract class AppLocalizations {
   /// **'Remove'**
   String get remove;
 
+  /// No description provided for @view.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get view;
+
   /// No description provided for @browseProducts.
   ///
   /// In en, this message translates to:

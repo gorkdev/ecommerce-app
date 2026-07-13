@@ -42,6 +42,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get remove => 'Remove';
 
   @override
+  String get view => 'View';
+
+  @override
   String get browseProducts => 'Browse products';
 
   @override

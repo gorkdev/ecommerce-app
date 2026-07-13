@@ -103,7 +103,7 @@ as those milestones land.
   - [x] Profile & addresses (account hub, address book, checkout address picker)
   - [x] Reviews & ratings (summary with distribution, verified-buyer write/edit)
 - [x] **M11** — Internationalization (English + Turkish, in-app language picker) — widget + unit tested
-- [ ] **M12** — Push notifications (FCM)
+- [x] **M12** — Push notifications (FCM: localized order-status pushes, deep links) — unit + e2e + widget tested
 - [ ] **M13** — Polish (seed data, tests, screenshots, CI)
 
 ## License

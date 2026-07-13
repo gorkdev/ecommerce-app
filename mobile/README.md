@@ -33,6 +33,12 @@ Milestone **M11** — internationalization — is also done:
       locale-aware dates, an in-app language picker on the profile screen
       with the choice persisted across launches
 
+Milestone **M12** — push notifications — is also done:
+
+- [x] Push (FCM) — the device registers for order-status notifications
+      while signed in; a notification tap deep-links to the order, a
+      foreground message becomes a snackbar with a View action
+
 ## Layout
 
 ```
@@ -67,6 +73,24 @@ app-wide immediately. Dates format through locale-aware skeletons, so field
 order adapts per language. One deliberate boundary: messages authored by the
 API (validation errors, business rules) surface verbatim — the server is the
 authority on what went wrong.
+
+## Push notifications
+
+Order-status changes arrive as FCM notifications. While someone is signed
+in, the app registers its device token (and the app language, so the server
+renders the copy in it) with the API; sign-out removes it. A notification
+tap — from the tray or a cold start — deep-links straight to the order, and
+a message arriving in the foreground shows a snackbar with a View action.
+
+Firebase config is per-developer and gitignored, so a clean checkout builds
+and runs with push silently disabled. To enable it:
+
+1. Create a Firebase project and an Android/iOS app in it
+   (`flutterfire configure` does both and drops the files in place).
+2. `google-services.json` goes to `android/app/`,
+   `GoogleService-Info.plist` to `ios/Runner/` (iOS additionally needs an
+   APNs key uploaded to Firebase and the Push Notifications capability).
+3. Point the API at the same project (see `../api/README.md`).
 
 ## Running
 

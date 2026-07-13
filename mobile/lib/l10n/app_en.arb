@@ -13,6 +13,7 @@
   "edit": "Edit",
   "clear": "Clear",
   "remove": "Remove",
+  "view": "View",
   "browseProducts": "Browse products",
   "somethingWentWrong": "Something went wrong.",
   "networkError": "No connection to the server.",

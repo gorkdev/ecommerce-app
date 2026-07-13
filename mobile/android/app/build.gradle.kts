@@ -5,6 +5,13 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Firebase config is per-developer and gitignored, so the plugin only applies
+// when the file is present — a clean checkout must still build (push simply
+// stays disabled at runtime).
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 android {
     namespace = "io.ajans.ecommerce_app"
     compileSdk = flutter.compileSdkVersion

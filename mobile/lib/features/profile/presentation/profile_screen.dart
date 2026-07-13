@@ -8,6 +8,7 @@ import '../../addresses/presentation/addresses_screen.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../auth/domain/auth_user.dart';
 import '../../favorites/presentation/favorites_screen.dart';
+import '../../notifications/application/push_registrar.dart';
 import '../../orders/presentation/orders_screen.dart';
 
 /// The account hub: who is signed in, and the doors to everything personal.
@@ -105,8 +106,14 @@ class ProfileScreen extends ConsumerWidget {
                     l10n.signOut,
                     style: TextStyle(color: theme.colorScheme.error),
                   ),
-                  onTap: () =>
-                      ref.read(authControllerProvider.notifier).logout(),
+                  onTap: () async {
+                    // The push token must be deleted while the credentials
+                    // still authenticate — so before the sign-out.
+                    await ref
+                        .read(pushRegistrarProvider.notifier)
+                        .unregisterDevice();
+                    await ref.read(authControllerProvider.notifier).logout();
+                  },
                 ),
               ],
             ),

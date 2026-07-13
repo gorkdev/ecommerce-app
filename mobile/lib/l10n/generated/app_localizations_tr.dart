@@ -42,6 +42,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get remove => 'Kaldır';
 
   @override
+  String get view => 'Görüntüle';
+
+  @override
   String get browseProducts => 'Ürünlere göz at';
 
   @override
