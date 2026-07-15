@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/theme/app_tokens.dart';
 
-/// Small rounded product thumbnail with a graceful placeholder.
+/// Small rounded product thumbnail with a graceful placeholder and a subtle
+/// fade-in once the network image arrives.
 class RemoteThumbnail extends StatelessWidget {
   const RemoteThumbnail({required this.url, this.size = 64, super.key});
 
@@ -22,7 +24,7 @@ class RemoteThumbnail extends StatelessWidget {
     );
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(AppTokens.radiusSm),
       child: SizedBox.square(
         dimension: size,
         child: url == null
@@ -31,6 +33,15 @@ class RemoteThumbnail extends StatelessWidget {
                 AppConfig.resolveMediaUrl(url!),
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) => placeholder,
+                frameBuilder: (_, Widget child, int? frame, bool syncLoaded) {
+                  if (syncLoaded) return child;
+                  return AnimatedOpacity(
+                    opacity: frame == null ? 0 : 1,
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOut,
+                    child: child,
+                  );
+                },
               ),
       ),
     );

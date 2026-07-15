@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/l10n/l10n.dart';
+import '../../core/theme/app_tokens.dart';
 
 /// Centered full-body error state with an optional retry.
 class ErrorView extends StatelessWidget {
@@ -26,19 +27,31 @@ class ErrorView extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: AppTokens.screenPadding,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Icon(icon, size: 48, color: theme.colorScheme.onSurfaceVariant),
-            const SizedBox(height: 12),
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.errorContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                size: 32,
+                color: theme.colorScheme.onErrorContainer,
+              ),
+            ),
+            const SizedBox(height: AppTokens.space5),
             Text(
               text,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium,
             ),
             if (onRetry != null) ...<Widget>[
-              const SizedBox(height: 16),
+              const SizedBox(height: AppTokens.space5),
               FilledButton.tonal(
                 onPressed: onRetry,
                 child: Text(context.l10n.tryAgain),

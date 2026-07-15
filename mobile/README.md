@@ -125,3 +125,16 @@ message instead of opening the payment sheet.
 flutter analyze
 flutter test
 ```
+
+## Regenerating the README screenshots
+
+`integration_test/screenshots_test.dart` walks the real app — sign-in,
+catalog, product detail, cart, orders, order tracking, profile — against a
+locally running, seeded API and drops the screenshots into
+`../docs/screenshots/`. With an Android emulator running and the API up
+(seed applied — see `../api`):
+
+```bash
+flutter drive --driver=test_driver/integration_test.dart \
+  --target=integration_test/screenshots_test.dart
+```
