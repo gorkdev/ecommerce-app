@@ -493,4 +493,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteMyReview => 'Delete my review';
+
+  @override
+  String get navDiscover => 'Discover';
+
+  @override
+  String get navFavorites => 'Favorites';
+
+  @override
+  String get navCart => 'Cart';
+
+  @override
+  String get navOrders => 'Orders';
+
+  @override
+  String get navProfile => 'Profile';
 }

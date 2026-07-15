@@ -494,4 +494,19 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get deleteMyReview => 'Değerlendirmemi sil';
+
+  @override
+  String get navDiscover => 'Keşfet';
+
+  @override
+  String get navFavorites => 'Favoriler';
+
+  @override
+  String get navCart => 'Sepet';
+
+  @override
+  String get navOrders => 'Siparişler';
+
+  @override
+  String get navProfile => 'Profil';
 }

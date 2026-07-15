@@ -229,5 +229,11 @@
   "beFirstToReview": "Purchased this product? Be the first to review it.",
   "commentOptional": "Comment (optional)",
   "submitReview": "Submit review",
-  "deleteMyReview": "Delete my review"
+  "deleteMyReview": "Delete my review",
+
+  "navDiscover": "Discover",
+  "navFavorites": "Favorites",
+  "navCart": "Cart",
+  "navOrders": "Orders",
+  "navProfile": "Profile"
 }

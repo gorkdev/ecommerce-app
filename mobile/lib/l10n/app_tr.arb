@@ -162,5 +162,11 @@
   "beFirstToReview": "Bu ürünü satın aldınız mı? İlk değerlendiren siz olun.",
   "commentOptional": "Yorum (isteğe bağlı)",
   "submitReview": "Değerlendirmeyi gönder",
-  "deleteMyReview": "Değerlendirmemi sil"
+  "deleteMyReview": "Değerlendirmemi sil",
+
+  "navDiscover": "Keşfet",
+  "navFavorites": "Favoriler",
+  "navCart": "Sepet",
+  "navOrders": "Siparişler",
+  "navProfile": "Profil"
 }

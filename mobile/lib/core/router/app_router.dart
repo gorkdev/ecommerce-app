@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -19,11 +20,15 @@ import '../../features/orders/presentation/orders_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/reviews/presentation/reviews_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
+import 'app_shell.dart';
 
 const Set<String> _publicRoutes = <String>{
   LoginScreen.path,
   RegisterScreen.path,
 };
+
+/// Full-screen flows push onto this navigator so they cover the bottom bar.
+final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final Provider<GoRouter> routerProvider = Provider<GoRouter>((ref) {
   // GoRouter is built once and re-runs `redirect` whenever this notifier fires.
@@ -40,6 +45,7 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((ref) {
 
   final GoRouter router = GoRouter(
     initialLocation: SplashScreen.path,
+    navigatorKey: _rootNavigatorKey,
     refreshListenable: authListenable,
     debugLogDiagnostics: kDebugMode,
     redirect: (_, GoRouterState state) {
@@ -68,44 +74,88 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((ref) {
         path: RegisterScreen.path,
         builder: (_, _) => const RegisterScreen(),
       ),
-      GoRoute(path: CatalogScreen.path, builder: (_, _) => const CatalogScreen()),
+      // The five tabs live in an indexed stack behind the bottom bar; each
+      // branch keeps its own navigation state when switching.
+      StatefulShellRoute.indexedStack(
+        builder: (_, _, StatefulNavigationShell shell) =>
+            AppShell(navigationShell: shell),
+        branches: <StatefulShellBranch>[
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: CatalogScreen.path,
+                builder: (_, _) => const CatalogScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: FavoritesScreen.path,
+                builder: (_, _) => const FavoritesScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: CartScreen.path,
+                builder: (_, _) => const CartScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: OrdersScreen.path,
+                builder: (_, _) => const OrdersScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: ProfileScreen.path,
+                builder: (_, _) => const ProfileScreen(),
+              ),
+            ],
+          ),
+        ],
+      ),
+      // Full-screen flows: pushed on the root navigator, covering the bar.
       GoRoute(
         path: ProductDetailScreen.path,
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (_, GoRouterState state) =>
             ProductDetailScreen(slug: state.pathParameters['slug']!),
       ),
       GoRoute(
         path: ReviewsScreen.path,
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (_, GoRouterState state) => ReviewsScreen(
           productId: state.pathParameters['productId']!,
           productName: state.extra as String?,
         ),
       ),
-      GoRoute(path: CartScreen.path, builder: (_, _) => const CartScreen()),
       GoRoute(
         path: CheckoutScreen.path,
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (_, _) => const CheckoutScreen(),
       ),
       GoRoute(
-        path: FavoritesScreen.path,
-        builder: (_, _) => const FavoritesScreen(),
-      ),
-      GoRoute(
-        path: ProfileScreen.path,
-        builder: (_, _) => const ProfileScreen(),
-      ),
-      GoRoute(
         path: AddressesScreen.path,
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (_, _) => const AddressesScreen(),
       ),
       GoRoute(
         path: AddressFormScreen.path,
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (_, GoRouterState state) =>
             AddressFormScreen(initial: state.extra as Address?),
       ),
-      GoRoute(path: OrdersScreen.path, builder: (_, _) => const OrdersScreen()),
       GoRoute(
         path: OrderDetailScreen.path,
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (_, GoRouterState state) =>
             OrderDetailScreen(orderId: state.pathParameters['id']!),
       ),
