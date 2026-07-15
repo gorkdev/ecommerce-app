@@ -4,6 +4,7 @@ import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { OrderStatus, PrismaClient } from '../src/generated/prisma/client';
 import { productImagePng } from './seed-assets';
+import { PRODUCT_PHOTOS, fetchPhoto } from './seed-photos';
 
 // Demo dataset for local development, screenshots and reviewer walk-throughs.
 // Idempotent: every record is upserted against a stable natural key (email,
@@ -112,10 +113,12 @@ const PRODUCTS: ProductSeed[] = [
     category: 'wearables',
   },
   {
+    // Slug is stable (seeded favorites reference it); the product itself
+    // was recast as a sport watch to match its photography.
     slug: 'nova-smart-ring',
-    name: 'Nova Smart Ring',
+    name: 'Nova Sport Watch',
     description:
-      'Discreet titanium smart ring measuring heart rate, temperature trends and recovery — a week of insight from a single charge.',
+      'A featherweight GPS sport watch with a crisp always-on display, tracking heart rate, pace and recovery — a week per charge.',
     price: '2199.00',
     stock: 14,
     category: 'wearables',
@@ -228,6 +231,61 @@ const PRODUCTS: ProductSeed[] = [
       'A zip-around tech organizer with elastic loops for cables, slots for cards and passports, and a padded pocket for a power bank.',
     price: '649.90',
     stock: 47,
+    category: 'everyday-carry',
+  },
+  {
+    slug: 'studio-monitor-headphones',
+    name: 'Studio Monitor Headphones',
+    description:
+      'Open-back reference headphones tuned flat for mixing and long listening sessions. Velour earpads and a detachable braided cable.',
+    price: '2899.00',
+    stock: 31,
+    category: 'audio',
+  },
+  {
+    slug: 'aspen-leather-tote',
+    name: 'Aspen Leather Tote',
+    description:
+      'A structured full-grain leather tote that swallows a 14-inch laptop, with an interior zip pocket and a magnetic top closure.',
+    price: '1599.00',
+    stock: 22,
+    category: 'bags',
+  },
+  {
+    slug: 'nordic-lounge-chair',
+    name: 'Nordic Lounge Chair',
+    description:
+      'A mid-century inspired lounge chair in solid oak with a boucle cushion. Assembles in ten minutes with the included tools.',
+    price: '4299.00',
+    compareAtPrice: '4999.00',
+    stock: 8,
+    category: 'decor',
+  },
+  {
+    slug: 'copenhagen-loveseat',
+    name: 'Copenhagen Loveseat',
+    description:
+      'A compact two-seat sofa with deep cushions and stain-resistant woven upholstery — apartment-sized comfort without the bulk.',
+    price: '8999.00',
+    stock: 4,
+    category: 'decor',
+  },
+  {
+    slug: 'pour-over-coffee-kit',
+    name: 'Pour-Over Coffee Kit',
+    description:
+      'Everything for a slow morning: a glass carafe, a stainless dripper, a gooseneck kettle and a starter pack of filters.',
+    price: '899.90',
+    stock: 44,
+    category: 'kitchen',
+  },
+  {
+    slug: 'oak-desk-organizer',
+    name: 'Oak Desk Organizer',
+    description:
+      'A modular solid-oak desk tray that corrals pens, cards and cables, with a groove that props your phone at a glanceable angle.',
+    price: '579.00',
+    stock: 39,
     category: 'everyday-carry',
   },
 ];
@@ -511,9 +569,10 @@ async function seedCatalog() {
   return products;
 }
 
-// Uploads generated placeholder images to MinIO and registers them, mirroring
-// the URL shape StorageService produces. If MinIO is unreachable the catalog
-// still seeds — the apps render their built-in placeholders instead.
+// Uploads real product photography (curated Unsplash shots) to MinIO and
+// registers it, mirroring the URL shape StorageService produces. A product
+// whose photos cannot be fetched falls back to generated gradients; if MinIO
+// itself is unreachable the catalog still seeds without images.
 async function seedImages(products: Map<string, { id: string }>) {
   const useSsl = process.env.MINIO_USE_SSL === 'true';
   const endpoint = `${useSsl ? 'https' : 'http'}://${process.env.MINIO_ENDPOINT ?? 'localhost'}:${process.env.MINIO_PORT ?? '9000'}`;
@@ -529,30 +588,73 @@ async function seedImages(products: Map<string, { id: string }>) {
     },
   });
 
+  let photosUsed = 0;
+  let gradientsUsed = 0;
+
   try {
     for (const [slug, product] of products) {
-      for (let variant = 0; variant < IMAGES_PER_PRODUCT; variant++) {
-        const key = `products/${product.id}/seed-${variant}.png`;
+      // Try the curated photos first; any failure downgrades the whole
+      // product to gradients so its gallery stays visually consistent.
+      let images: { body: Buffer; contentType: string; ext: string }[];
+      try {
+        const photos = await Promise.all(
+          (PRODUCT_PHOTOS[slug] ?? []).map((url) => fetchPhoto(url)),
+        );
+        if (photos.length === 0) throw new Error('no curated photos');
+        images = photos.map((body) => ({
+          body,
+          contentType: 'image/jpeg',
+          ext: 'jpg',
+        }));
+        photosUsed++;
+      } catch (error) {
+        console.warn(
+          `photos unavailable for ${slug} — using gradients (${(error as Error).message})`,
+        );
+        images = Array.from({ length: IMAGES_PER_PRODUCT }, (_, variant) => ({
+          body: productImagePng(slug, variant),
+          contentType: 'image/png',
+          ext: 'png',
+        }));
+        gradientsUsed++;
+      }
+
+      const keptIds: string[] = [];
+      for (const [variant, image] of images.entries()) {
+        const key = `products/${product.id}/seed-${variant}.${image.ext}`;
         await client.send(
           new PutObjectCommand({
             Bucket: bucket,
             Key: key,
-            Body: productImagePng(slug, variant),
-            ContentType: 'image/png',
+            Body: image.body,
+            ContentType: image.contentType,
           }),
         );
+        const id = `img_seed_${slug}_${variant}`;
+        keptIds.push(id);
         await prisma.productImage.upsert({
-          where: { id: `img_seed_${slug}_${variant}` },
+          where: { id },
           update: { url: `${publicBaseUrl}/${bucket}/${key}` },
           create: {
-            id: `img_seed_${slug}_${variant}`,
+            id,
             productId: product.id,
             url: `${publicBaseUrl}/${bucket}/${key}`,
             sortOrder: variant,
           },
         });
       }
+      // A product may have fewer images than a previous seed run left behind.
+      await prisma.productImage.deleteMany({
+        where: {
+          productId: product.id,
+          id: { startsWith: 'img_seed_' },
+          NOT: { id: { in: keptIds } },
+        },
+      });
     }
+    console.log(
+      `  imagery:   ${photosUsed} products with photos, ${gradientsUsed} on gradients`,
+    );
     return true;
   } catch (error) {
     console.warn(
@@ -685,7 +787,7 @@ async function main() {
   console.log('Seed complete:');
   console.log(`  users:     1 admin + ${CUSTOMERS.length} customers`);
   console.log(`  catalog:   ${CATEGORIES.length} root categories, ${PRODUCTS.length} products`);
-  console.log(`  images:    ${imagesUploaded ? `${PRODUCTS.length * IMAGES_PER_PRODUCT} uploaded to MinIO` : 'skipped (MinIO unreachable)'}`);
+  console.log(`  images:    ${imagesUploaded ? 'uploaded to MinIO' : 'skipped (MinIO unreachable)'}`);
   console.log(`  commerce:  ${ORDERS.length} orders, 3 coupons, ${REVIEWS.length} reviews, ${FAVORITES.length} favorites`);
   console.log('Demo credentials: admin@example.com / Admin123! — ada@example.com / Customer123!');
 }

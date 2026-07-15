@@ -24,12 +24,14 @@ Module-by-module functionality lands per the roadmap in the root README.
 npm run prisma:seed             # or: npx prisma db seed
 ```
 
-Populates the database with a browsable store: a category tree, 18 products
-(with generated placeholder images uploaded straight to MinIO), coupons in
-every state, and orders/reviews/favorites spread across four customers so the
-admin dashboard, the order pipeline and the product rating summaries all have
-real data. The script is idempotent — rerun it anytime to restore the demo
-state; it never duplicates rows.
+Populates the database with a browsable store: a category tree, 24 products
+with real product photography (curated Unsplash shots downloaded at seed time
+and uploaded straight to MinIO — Unsplash License, free commercial use),
+coupons in every state, and orders/reviews/favorites spread across four
+customers so the admin dashboard, the order pipeline and the product rating
+summaries all have real data. The script is idempotent — rerun it anytime to
+restore the demo state; it never duplicates rows. Offline? Products fall back
+to generated gradient placeholders.
 
 | Account | Email | Password |
 |---------|-------|----------|
