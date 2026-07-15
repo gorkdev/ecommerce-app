@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { ImagePlus, Loader2, Star, Trash2 } from "lucide-react";
 import { apiErrorMessage } from "@/lib/api";
@@ -18,18 +18,15 @@ interface Props {
 
 export function ProductImagesManager({ product }: Props) {
   // Local mirror so the grid updates instantly; `['products']` is invalidated
-  // in the background to keep the table thumbnails in sync.
+  // in the background to keep the table thumbnails in sync. The parent keys
+  // this component by product id, so switching products remounts it and the
+  // mirror re-initializes.
   const [images, setImages] = useState<ProductImage[]>(product.images);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const uploadMutation = useUploadProductImage();
   const deleteMutation = useDeleteProductImage();
-
-  // Re-seed when the dialog switches to a different product.
-  useEffect(() => {
-    setImages(product.images);
-  }, [product.id, product.images]);
 
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

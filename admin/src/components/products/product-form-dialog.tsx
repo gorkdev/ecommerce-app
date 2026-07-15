@@ -239,7 +239,7 @@ export function ProductFormDialog({ open, onOpenChange, product }: Props) {
           <Separator />
 
           {isEdit && product ? (
-            <ProductImagesManager product={product} />
+            <ProductImagesManager key={product.id} product={product} />
           ) : (
             <p className="text-xs text-muted-foreground">
               Save the product first, then reopen it to upload images.

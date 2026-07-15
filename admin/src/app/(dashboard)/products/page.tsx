@@ -26,9 +26,10 @@ export default function ProductsPage() {
   const search = useDebounced(searchInput, 350);
 
   // A new search always restarts at the first page.
-  useEffect(() => {
+  const onSearchChange = (value: string) => {
+    setSearchInput(value);
     setPage(1);
-  }, [search]);
+  };
 
   const { data, isPending, isError, isFetching } = useAdminProducts({
     page,
@@ -73,7 +74,7 @@ export default function ProductsPage() {
           placeholder="Search products…"
           className="pl-9"
           value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
+          onChange={(e) => onSearchChange(e.target.value)}
         />
         {isFetching && !isPending && (
           <Loader2 className="absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-muted-foreground" />

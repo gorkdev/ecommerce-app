@@ -36,6 +36,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let active = true;
     if (!tokenStore.access) {
+      // One-time sync from localStorage on mount. Initializing the state from
+      // tokenStore instead would read localStorage during the SSR/hydration
+      // render and mismatch; settling here after mount is the safe order.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStatus("guest");
       return;
     }

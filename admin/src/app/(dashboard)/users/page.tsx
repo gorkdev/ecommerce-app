@@ -18,16 +18,21 @@ export default function UsersPage() {
   const [page, setPage] = useState(1);
   const [viewing, setViewing] = useState<AdminUserListItem | null>(null);
 
-  // Debounce the search box so we don't fire a request on every keystroke.
+  // Debounce the search box so we don't fire a request on every keystroke;
+  // a new search always restarts at the first page.
   useEffect(() => {
-    const t = setTimeout(() => setSearch(searchInput.trim()), 300);
+    const t = setTimeout(() => {
+      setSearch(searchInput.trim());
+      setPage(1);
+    }, 300);
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  // Any filter change restarts at the first page.
-  useEffect(() => {
+  // A role filter change restarts at the first page too.
+  const selectRole = (next: Role | "ALL") => {
+    setRole(next);
     setPage(1);
-  }, [search, role]);
+  };
 
   const { data, isPending, isError, isFetching } = useAdminUsers({
     search: search || undefined,
@@ -63,14 +68,14 @@ export default function UsersPage() {
           <FilterChip
             label="All"
             active={role === "ALL"}
-            onClick={() => setRole("ALL")}
+            onClick={() => selectRole("ALL")}
           />
           {ROLES.map((r) => (
             <FilterChip
               key={r}
               label={ROLE_META[r].label}
               active={role === r}
-              onClick={() => setRole(r)}
+              onClick={() => selectRole(r)}
             />
           ))}
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ShoppingCart, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,9 +16,10 @@ export default function OrdersPage() {
   const [viewing, setViewing] = useState<Order | null>(null);
 
   // A new filter always restarts at the first page.
-  useEffect(() => {
+  const selectStatus = (next: OrderStatus | "ALL") => {
+    setStatus(next);
     setPage(1);
-  }, [status]);
+  };
 
   const { data, isPending, isError, isFetching } = useAdminOrders({
     status: status === "ALL" ? undefined : status,
@@ -43,14 +44,14 @@ export default function OrdersPage() {
         <FilterChip
           label="All"
           active={status === "ALL"}
-          onClick={() => setStatus("ALL")}
+          onClick={() => selectStatus("ALL")}
         />
         {ORDER_STATUSES.map((s) => (
           <FilterChip
             key={s}
             label={ORDER_STATUS_META[s].label}
             active={status === s}
-            onClick={() => setStatus(s)}
+            onClick={() => selectStatus(s)}
           />
         ))}
         {isFetching && !isPending && (
