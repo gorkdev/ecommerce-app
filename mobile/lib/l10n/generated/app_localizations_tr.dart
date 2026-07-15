@@ -509,4 +509,17 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get navProfile => 'Profil';
+
+  @override
+  String greeting(String name) {
+    return 'Merhaba $name 👋';
+  }
+
+  @override
+  String get promoBannerTitle => 'İlk siparişinde %10 indirim';
+
+  @override
+  String promoBannerBody(String code) {
+    return 'Ödemede $code kodunu kullan';
+  }
 }

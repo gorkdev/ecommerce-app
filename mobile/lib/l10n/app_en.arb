@@ -235,5 +235,19 @@
   "navFavorites": "Favorites",
   "navCart": "Cart",
   "navOrders": "Orders",
-  "navProfile": "Profile"
+  "navProfile": "Profile",
+
+  "greeting": "Hi, {name} 👋",
+  "@greeting": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "promoBannerTitle": "10% off your first order",
+  "promoBannerBody": "Use code {code} at checkout",
+  "@promoBannerBody": {
+    "placeholders": {
+      "code": { "type": "String" }
+    }
+  }
 }

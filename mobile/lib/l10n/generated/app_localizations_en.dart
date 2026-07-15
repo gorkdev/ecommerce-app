@@ -508,4 +508,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navProfile => 'Profile';
+
+  @override
+  String greeting(String name) {
+    return 'Hi, $name 👋';
+  }
+
+  @override
+  String get promoBannerTitle => '10% off your first order';
+
+  @override
+  String promoBannerBody(String code) {
+    return 'Use code $code at checkout';
+  }
 }

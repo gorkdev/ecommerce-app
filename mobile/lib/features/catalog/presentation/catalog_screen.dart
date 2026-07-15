@@ -2,25 +2,18 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/l10n.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../shared/widgets/empty_view.dart';
 import '../../../shared/widgets/error_view.dart';
 import '../../auth/application/auth_controller.dart';
-import '../../cart/application/cart_controller.dart';
-import '../../cart/presentation/cart_screen.dart';
-import '../../favorites/presentation/favorites_screen.dart';
-import '../../orders/presentation/orders_screen.dart';
-import '../../profile/presentation/profile_screen.dart';
 import '../application/catalog_providers.dart';
 import '../application/product_list_controller.dart';
 import '../domain/category.dart';
 import '../domain/product_query.dart';
 import 'widgets/price_filter_sheet.dart';
 import 'widgets/product_card.dart';
-
-enum _CatalogMenuAction { profile, orders, favorites, signOut }
 
 /// The storefront landing screen: search, filters and the product grid.
 class CatalogScreen extends ConsumerStatefulWidget {
@@ -107,109 +100,103 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
       }
     });
 
+    final ThemeData theme = Theme.of(context);
     final AsyncValue<ProductListState> listState = ref.watch(
       productListControllerProvider,
     );
     final ProductQuery query = _controller.query;
     final AppLocalizations l10n = context.l10n;
+    // First name only: the greeting is casual by design.
+    final String? name = ref
+        .watch(authControllerProvider)
+        .value
+        ?.name
+        .split(' ')
+        .first;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.appTitle),
-        actions: <Widget>[
-          PopupMenuButton<ProductSort>(
-            icon: const Icon(Icons.sort),
-            tooltip: l10n.sort,
-            onSelected: (ProductSort sort) =>
-                _controller.apply(_controller.query.withSort(sort)),
-            itemBuilder: (_) => <PopupMenuEntry<ProductSort>>[
-              _sortItem(ProductSort.newest, l10n.sortNewest),
-              _sortItem(ProductSort.priceAsc, l10n.sortPriceLowHigh),
-              _sortItem(ProductSort.priceDesc, l10n.sortPriceHighLow),
-            ],
-          ),
-          IconButton(
-            tooltip: l10n.priceFilter,
-            onPressed: _openPriceFilter,
-            icon: Badge(
-              smallSize: 8,
-              isLabelVisible: query.hasPriceFilter,
-              child: const Icon(Icons.tune),
+      body: SafeArea(
+        child: Column(
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppTokens.space5,
+                AppTokens.space4,
+                AppTokens.space3,
+                0,
+              ),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Text(
+                      name == null ? l10n.appTitle : l10n.greeting(name),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.headlineMedium,
+                    ),
+                  ),
+                  PopupMenuButton<ProductSort>(
+                    icon: const Icon(Icons.sort),
+                    tooltip: l10n.sort,
+                    onSelected: (ProductSort sort) =>
+                        _controller.apply(_controller.query.withSort(sort)),
+                    itemBuilder: (_) => <PopupMenuEntry<ProductSort>>[
+                      _sortItem(ProductSort.newest, l10n.sortNewest),
+                      _sortItem(ProductSort.priceAsc, l10n.sortPriceLowHigh),
+                      _sortItem(ProductSort.priceDesc, l10n.sortPriceHighLow),
+                    ],
+                  ),
+                  IconButton(
+                    tooltip: l10n.priceFilter,
+                    onPressed: _openPriceFilter,
+                    icon: Badge(
+                      smallSize: 8,
+                      isLabelVisible: query.hasPriceFilter,
+                      child: const Icon(Icons.tune),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          IconButton(
-            tooltip: l10n.cart,
-            onPressed: () => context.push(CartScreen.path),
-            icon: Badge(
-              label: Text('${ref.watch(cartItemCountProvider)}'),
-              isLabelVisible: ref.watch(cartItemCountProvider) > 0,
-              child: const Icon(Icons.shopping_cart_outlined),
-            ),
-          ),
-          PopupMenuButton<_CatalogMenuAction>(
-            onSelected: (_CatalogMenuAction action) => switch (action) {
-              _CatalogMenuAction.profile => context.push(ProfileScreen.path),
-              _CatalogMenuAction.orders => context.push(OrdersScreen.path),
-              _CatalogMenuAction.favorites =>
-                context.push(FavoritesScreen.path),
-              _CatalogMenuAction.signOut =>
-                ref.read(authControllerProvider.notifier).logout(),
-            },
-            itemBuilder: (_) => <PopupMenuEntry<_CatalogMenuAction>>[
-              PopupMenuItem<_CatalogMenuAction>(
-                value: _CatalogMenuAction.profile,
-                child: Text(l10n.profile),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppTokens.space5,
+                AppTokens.space3,
+                AppTokens.space5,
+                AppTokens.space1,
               ),
-              PopupMenuItem<_CatalogMenuAction>(
-                value: _CatalogMenuAction.orders,
-                child: Text(l10n.myOrders),
-              ),
-              PopupMenuItem<_CatalogMenuAction>(
-                value: _CatalogMenuAction.favorites,
-                child: Text(l10n.favorites),
-              ),
-              PopupMenuItem<_CatalogMenuAction>(
-                value: _CatalogMenuAction.signOut,
-                child: Text(l10n.signOut),
-              ),
-            ],
-          ),
-        ],
-      ),
-      body: Column(
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: TextField(
-              controller: _search,
-              onChanged: _onSearchChanged,
-              textInputAction: TextInputAction.search,
-              decoration: InputDecoration(
-                hintText: l10n.searchProducts,
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: ListenableBuilder(
-                  listenable: _search,
-                  builder: (_, _) => _search.text.isEmpty
-                      ? const SizedBox.shrink()
-                      : IconButton(
-                          tooltip: l10n.clearSearch,
-                          icon: const Icon(Icons.close),
-                          onPressed: () {
-                            _search.clear();
-                            _onSearchChanged('');
-                          },
-                        ),
+              child: TextField(
+                controller: _search,
+                onChanged: _onSearchChanged,
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  hintText: l10n.searchProducts,
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: ListenableBuilder(
+                    listenable: _search,
+                    builder: (_, _) => _search.text.isEmpty
+                        ? const SizedBox.shrink()
+                        : IconButton(
+                            tooltip: l10n.clearSearch,
+                            icon: const Icon(Icons.close),
+                            onPressed: () {
+                              _search.clear();
+                              _onSearchChanged('');
+                            },
+                          ),
+                  ),
                 ),
               ),
             ),
-          ),
-          _CategoryChips(
-            selectedId: query.categoryId,
-            onSelected: (String? categoryId) =>
-                _controller.apply(_controller.query.withCategory(categoryId)),
-          ),
-          Expanded(child: _buildBody(listState)),
-        ],
+            _CategoryChips(
+              selectedId: query.categoryId,
+              onSelected: (String? categoryId) => _controller.apply(
+                _controller.query.withCategory(categoryId),
+              ),
+            ),
+            Expanded(child: _buildBody(listState)),
+          ],
+        ),
       ),
     );
   }
@@ -244,19 +231,34 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
       );
     }
 
+    // The promo banner only fronts the unfiltered storefront; during a
+    // search or filter it would push the results the user asked for down.
+    final bool showBanner =
+        _controller.query.search == null && !_controller.query.hasPriceFilter;
+
     return RefreshIndicator(
       onRefresh: () => _controller.reload(),
       child: CustomScrollView(
         controller: _scroll,
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: <Widget>[
+          if (showBanner)
+            const SliverPadding(
+              padding: EdgeInsets.fromLTRB(
+                AppTokens.space5,
+                AppTokens.space3,
+                AppTokens.space5,
+                0,
+              ),
+              sliver: SliverToBoxAdapter(child: _PromoBanner()),
+            ),
           SliverPadding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppTokens.space5),
             sliver: SliverGrid(
               gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                 maxCrossAxisExtent: 220,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
+                mainAxisSpacing: AppTokens.space4,
+                crossAxisSpacing: AppTokens.space4,
                 childAspectRatio: 0.68,
               ),
               delegate: SliverChildBuilderDelegate(
@@ -272,6 +274,71 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                 child: Center(child: CircularProgressIndicator()),
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The storefront's standing welcome offer. The code matches the seeded
+/// WELCOME10 coupon, so tapping through checkout with it actually works.
+class _PromoBanner extends StatelessWidget {
+  const _PromoBanner();
+
+  static const String _code = 'WELCOME10';
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final ColorScheme scheme = theme.colorScheme;
+    final AppLocalizations l10n = context.l10n;
+
+    return Container(
+      padding: const EdgeInsets.all(AppTokens.space5),
+      decoration: BoxDecoration(
+        color: scheme.tertiaryContainer,
+        borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+      ),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  l10n.promoBannerTitle,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: scheme.onTertiaryContainer,
+                  ),
+                ),
+                const SizedBox(height: AppTokens.space1),
+                Text(
+                  l10n.promoBannerBody(_code),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.onTertiaryContainer,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppTokens.space3),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppTokens.space3,
+              vertical: AppTokens.space2,
+            ),
+            decoration: BoxDecoration(
+              color: scheme.surface,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              _code,
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
         ],
       ),
     );

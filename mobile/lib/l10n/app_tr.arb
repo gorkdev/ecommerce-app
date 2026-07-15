@@ -168,5 +168,9 @@
   "navFavorites": "Favoriler",
   "navCart": "Sepet",
   "navOrders": "Siparişler",
-  "navProfile": "Profil"
+  "navProfile": "Profil",
+
+  "greeting": "Merhaba {name} 👋",
+  "promoBannerTitle": "İlk siparişinde %10 indirim",
+  "promoBannerBody": "Ödemede {code} kodunu kullan"
 }

@@ -1021,6 +1021,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Profile'**
   String get navProfile;
+
+  /// No description provided for @greeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi, {name} 👋'**
+  String greeting(String name);
+
+  /// No description provided for @promoBannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'10% off your first order'**
+  String get promoBannerTitle;
+
+  /// No description provided for @promoBannerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Use code {code} at checkout'**
+  String promoBannerBody(String code);
 }
 
 class _AppLocalizationsDelegate
