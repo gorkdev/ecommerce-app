@@ -39,6 +39,17 @@ Milestone **M12** — push notifications — is also done:
       while signed in; a notification tap deep-links to the order, a
       foreground message becomes a snackbar with a View action
 
+The app was then fully redesigned in a "soft modern" language:
+
+- [x] Design system — `AppTokens` ThemeExtension (pastel palette with
+      WCAG-AA ink foregrounds, spacing/radius scales, one soft shadow
+      recipe), bundled Plus Jakarta Sans, pill buttons and chips
+- [x] Bottom navigation shell — five tabs with a live cart badge;
+      full-screen flows cover the bar on the root navigator
+- [x] Every screen rebuilt on the tokens: greeting-led catalog with a
+      promo banner, edge-to-edge product gallery with a sticky buy bar,
+      receipt-style summaries, pastel order-status chips and timeline
+
 ## Layout
 
 ```

@@ -5,6 +5,7 @@ import 'package:ecommerce_app/features/orders/presentation/orders_screen.dart';
 import 'package:ecommerce_app/features/profile/presentation/profile_screen.dart';
 import 'package:ecommerce_app/l10n/generated/app_localizations.dart';
 import 'package:ecommerce_app/main.dart' as app;
+import 'package:ecommerce_app/shared/widgets/soft_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -39,8 +40,9 @@ void main() {
   }
 
   Future<void> shot(WidgetTester tester, String name) async {
-    // Give network images a moment to decode before freezing the frame.
-    for (int i = 0; i < 15; i++) {
+    // Give network images a moment to arrive and decode before freezing
+    // the frame — product photos are real downloads now.
+    for (int i = 0; i < 35; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
     await binding.takeScreenshot(name);
@@ -66,7 +68,8 @@ void main() {
     await shot(tester, 'mobile-01-login');
 
     await tester.tap(find.text(l10n.signIn));
-    await pumpUntil(tester, find.text('Trek Travel Organizer'));
+    // Newest first: the desk organizer was seeded last.
+    await pumpUntil(tester, find.text('Oak Desk Organizer'));
     await shot(tester, 'mobile-02-catalog');
 
     final ProviderContainer container = ProviderScope.containerOf(
@@ -85,12 +88,12 @@ void main() {
     await shot(tester, 'mobile-04-cart');
 
     router.go(OrdersScreen.path);
-    // Order cards show reference/date/total — anchor on the cards themselves.
-    await pumpUntil(tester, find.byType(Card));
+    // Order cards are SoftCards showing reference/date/total.
+    await pumpUntil(tester, find.byType(SoftCard));
     await shot(tester, 'mobile-05-orders');
 
     // Newest first: Ada's seeded order being prepared today (Pulse speaker).
-    await tester.tap(find.byType(Card).first);
+    await tester.tap(find.byType(SoftCard).first);
     await pumpUntil(tester, find.text('Pulse Bluetooth Speaker'));
     await shot(tester, 'mobile-06-order-detail');
 
