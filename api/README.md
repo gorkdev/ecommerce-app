@@ -18,6 +18,28 @@ npm run start:dev               # http://localhost:3000
 
 Module-by-module functionality lands per the roadmap in the root README.
 
+## Demo data (seed)
+
+```bash
+npm run prisma:seed             # or: npx prisma db seed
+```
+
+Populates the database with a browsable store: a category tree, 18 products
+(with generated placeholder images uploaded straight to MinIO), coupons in
+every state, and orders/reviews/favorites spread across four customers so the
+admin dashboard, the order pipeline and the product rating summaries all have
+real data. The script is idempotent — rerun it anytime to restore the demo
+state; it never duplicates rows.
+
+| Account | Email | Password |
+|---------|-------|----------|
+| Admin (dashboard) | `admin@example.com` | `Admin123!` |
+| Customer (mobile) | `ada@example.com` | `Customer123!` |
+| Customer (mobile) | `deniz@example.com` | `Customer123!` |
+
+If MinIO is not running the seed still completes — products just render
+without images.
+
 ## Push notifications (FCM)
 
 Order lifecycle changes (payment confirmed, preparing, shipped, delivered,

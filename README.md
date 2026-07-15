@@ -69,7 +69,15 @@ docker compose up -d
 
 #    MinIO console:  http://localhost:9001  (minioadmin / minioadmin)
 #    PostgreSQL:     localhost:5432
+
+# 3. Set up the API, then load the demo store (optional but recommended)
+cd api && npm install && npx prisma migrate dev
+npm run prisma:seed
 ```
+
+The seed fills the store with categories, products (placeholder images
+included), coupons, orders and reviews, and prints the demo sign-in
+credentials for the admin panel and the mobile app.
 
 Per-service setup (api / admin / mobile) is documented in each subfolder's README
 as those milestones land.
