@@ -4,10 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/l10n.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../shared/formatting/price_formatter.dart';
 import '../../../shared/widgets/empty_view.dart';
 import '../../../shared/widgets/error_view.dart';
 import '../../../shared/widgets/remote_thumbnail.dart';
+import '../../../shared/widgets/soft_card.dart';
 import '../../catalog/presentation/catalog_screen.dart';
 import '../../checkout/presentation/checkout_screen.dart';
 import '../application/cart_controller.dart';
@@ -73,9 +75,10 @@ class CartScreen extends ConsumerWidget {
       children: <Widget>[
         Expanded(
           child: ListView.separated(
-            padding: const EdgeInsets.all(16),
+            padding: AppTokens.screenPadding,
             itemCount: cart.items.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            separatorBuilder: (_, _) =>
+                const SizedBox(height: AppTokens.space3),
             itemBuilder: (_, int index) => _CartItemTile(cart.items[index]),
           ),
         ),
@@ -109,9 +112,9 @@ class CartScreen extends ConsumerWidget {
       await ref.read(cartControllerProvider.notifier).clear();
     } on ApiException catch (error) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.errorText(error))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.errorText(error))));
     }
   }
 }
@@ -135,10 +138,10 @@ class _CartItemTile extends ConsumerWidget {
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
+        padding: const EdgeInsets.only(right: AppTokens.space5),
         decoration: BoxDecoration(
           color: theme.colorScheme.errorContainer,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTokens.radiusLg),
         ),
         child: Icon(
           Icons.delete_outline,
@@ -148,58 +151,62 @@ class _CartItemTile extends ConsumerWidget {
       // The row may only disappear once the server confirmed the removal —
       // dismissing a widget that then stays in the tree is an error.
       confirmDismiss: (_) => _remove(context, ref),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          RemoteThumbnail(url: item.product.imageUrl),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  item.product.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  PriceFormatter.format(
-                    item.product.price,
-                    item.product.currency,
+      child: SoftCard(
+        padding: const EdgeInsets.all(AppTokens.space3),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            RemoteThumbnail(url: item.product.imageUrl, size: 72),
+            const SizedBox(width: AppTokens.space3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    item.product.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall,
                   ),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                if (warning != null) ...<Widget>[
                   const SizedBox(height: 2),
                   Text(
-                    warning,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.error,
+                    PriceFormatter.format(
+                      item.product.price,
+                      item.product.currency,
                     ),
+                    style: theme.textTheme.bodySmall,
                   ),
+                  if (warning != null) ...<Widget>[
+                    const SizedBox(height: 2),
+                    Text(
+                      warning,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.error,
+                      ),
+                    ),
+                  ],
                 ],
+              ),
+            ),
+            const SizedBox(width: AppTokens.space2),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: <Widget>[
+                Text(
+                  PriceFormatter.format(item.lineTotal, item.product.currency),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontFeatures: const <FontFeature>[
+                      FontFeature.tabularFigures(),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppTokens.space1),
+                _QuantityStepper(item),
               ],
             ),
-          ),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: <Widget>[
-              Text(
-                PriceFormatter.format(item.lineTotal, item.product.currency),
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 4),
-              _QuantityStepper(item),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -210,9 +217,9 @@ class _CartItemTile extends ConsumerWidget {
       return true;
     } on ApiException catch (error) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.errorText(error))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.l10n.errorText(error))));
       }
       return false;
     }
@@ -232,49 +239,55 @@ class _QuantityStepper extends ConsumerWidget {
     final bool canIncrease =
         item.quantity < _maxQuantity && item.quantity < item.product.stock;
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        IconButton(
-          visualDensity: VisualDensity.compact,
-          iconSize: 20,
-          tooltip: item.quantity == 1
-              ? context.l10n.remove
-              : context.l10n.decreaseQuantity,
-          icon: Icon(
-            item.quantity == 1 ? Icons.delete_outline : Icons.remove,
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            iconSize: 20,
+            tooltip: item.quantity == 1
+                ? context.l10n.remove
+                : context.l10n.decreaseQuantity,
+            icon: Icon(
+              item.quantity == 1 ? Icons.delete_outline : Icons.remove,
+            ),
+            onPressed: () => _run(
+              context,
+              ref,
+              (CartController cart) => item.quantity == 1
+                  ? cart.remove(item.productId)
+                  : cart.updateQuantity(item.productId, item.quantity - 1),
+            ),
           ),
-          onPressed: () => _run(
-            context,
-            ref,
-            (CartController cart) => item.quantity == 1
-                ? cart.remove(item.productId)
-                : cart.updateQuantity(item.productId, item.quantity - 1),
+          SizedBox(
+            width: 24,
+            child: Text(
+              '${item.quantity}',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleSmall,
+            ),
           ),
-        ),
-        SizedBox(
-          width: 24,
-          child: Text(
-            '${item.quantity}',
-            textAlign: TextAlign.center,
-            style: theme.textTheme.titleSmall,
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            iconSize: 20,
+            tooltip: context.l10n.increaseQuantity,
+            icon: const Icon(Icons.add),
+            onPressed: !canIncrease
+                ? null
+                : () => _run(
+                    context,
+                    ref,
+                    (CartController cart) =>
+                        cart.updateQuantity(item.productId, item.quantity + 1),
+                  ),
           ),
-        ),
-        IconButton(
-          visualDensity: VisualDensity.compact,
-          iconSize: 20,
-          tooltip: context.l10n.increaseQuantity,
-          icon: const Icon(Icons.add),
-          onPressed: !canIncrease
-              ? null
-              : () => _run(
-                  context,
-                  ref,
-                  (CartController cart) =>
-                      cart.updateQuantity(item.productId, item.quantity + 1),
-                ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -287,9 +300,9 @@ class _QuantityStepper extends ConsumerWidget {
       await action(ref.read(cartControllerProvider.notifier));
     } on ApiException catch (error) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.errorText(error))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.errorText(error))));
     }
   }
 }
@@ -303,12 +316,20 @@ class _CartSummaryBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Material(
-      color: theme.colorScheme.surfaceContainerLow,
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        border: Border(top: BorderSide(color: theme.colorScheme.outline)),
+      ),
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          padding: const EdgeInsets.fromLTRB(
+            AppTokens.space5,
+            AppTokens.space3,
+            AppTokens.space5,
+            AppTokens.space3,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
@@ -324,9 +345,7 @@ class _CartSummaryBar extends StatelessWidget {
                         ),
                         Text(
                           context.l10n.nItems(summary.itemCount),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
+                          style: theme.textTheme.bodySmall,
                         ),
                       ],
                     ),
@@ -334,12 +353,15 @@ class _CartSummaryBar extends StatelessWidget {
                   Text(
                     PriceFormatter.format(summary.subtotal, summary.currency),
                     style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
+                      fontFeatures: const <FontFeature>[
+                        FontFeature.tabularFigures(),
+                      ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppTokens.space3),
               FilledButton(
                 onPressed: () => context.push(CheckoutScreen.path),
                 child: Text(context.l10n.checkout),

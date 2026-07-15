@@ -4,9 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/l10n.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../shared/formatting/price_formatter.dart';
+import '../../../shared/widgets/dashed_divider.dart';
 import '../../../shared/widgets/empty_view.dart';
 import '../../../shared/widgets/error_view.dart';
+import '../../../shared/widgets/soft_card.dart';
 import '../../addresses/application/addresses_controller.dart';
 import '../../addresses/domain/address.dart';
 import '../../addresses/presentation/addresses_screen.dart';
@@ -35,7 +38,9 @@ class CheckoutScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(context.l10n.checkout)),
       body: switch (state) {
         CheckoutSuccess(:final Order order) => _SuccessView(order),
-        CheckoutPaymentPending(:final Order order) => _PaymentPendingView(order),
+        CheckoutPaymentPending(:final Order order) => _PaymentPendingView(
+          order,
+        ),
         final CheckoutReview review => _ReviewView(review),
       },
     );
@@ -117,44 +122,65 @@ class _ReviewViewState extends ConsumerState<_ReviewView> {
       children: <Widget>[
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: AppTokens.screenPadding,
             children: <Widget>[
-              _DeliverToCard(
-                address: deliverTo,
-                onChange: addresses.isEmpty
-                    ? () => context.push(AddressesScreen.path)
-                    : () => _pickAddress(addresses, deliverTo),
-              ),
-              const Divider(height: 32),
-              for (final CartItem item in cart.items) _OrderLine(item),
-              const SizedBox(height: 8),
-              _CouponSection(
-                coupon: coupon,
-                controller: _couponController,
-                busy: _applyingCoupon,
-                onApply: _applyCoupon,
-                onRemove: () =>
-                    ref.read(checkoutControllerProvider.notifier).removeCoupon(),
-              ),
-              const Divider(height: 32),
-              _TotalRow(
-                label: context.l10n.subtotal,
-                amount: PriceFormatter.format(
-                  coupon?.subtotal ?? cart.summary.subtotal,
-                  currency,
+              SoftCard(
+                child: _DeliverToCard(
+                  address: deliverTo,
+                  onChange: addresses.isEmpty
+                      ? () => context.push(AddressesScreen.path)
+                      : () => _pickAddress(addresses, deliverTo),
                 ),
               ),
-              if (coupon != null)
-                _TotalRow(
-                  label: context.l10n.discountWithCode(coupon.code),
-                  amount:
-                      '−${PriceFormatter.format(coupon.discount, currency)}',
+              const SizedBox(height: AppTokens.space4),
+              SoftCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    for (final CartItem item in cart.items) _OrderLine(item),
+                    const SizedBox(height: AppTokens.space3),
+                    _CouponSection(
+                      coupon: coupon,
+                      controller: _couponController,
+                      busy: _applyingCoupon,
+                      onApply: _applyCoupon,
+                      onRemove: () => ref
+                          .read(checkoutControllerProvider.notifier)
+                          .removeCoupon(),
+                    ),
+                  ],
                 ),
-              const SizedBox(height: 4),
-              _TotalRow(
-                label: context.l10n.total,
-                amount: PriceFormatter.format(total, currency),
-                emphasized: true,
+              ),
+              const SizedBox(height: AppTokens.space4),
+              SoftCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    _TotalRow(
+                      label: context.l10n.subtotal,
+                      amount: PriceFormatter.format(
+                        coupon?.subtotal ?? cart.summary.subtotal,
+                        currency,
+                      ),
+                    ),
+                    if (coupon != null)
+                      _TotalRow(
+                        label: context.l10n.discountWithCode(coupon.code),
+                        amount:
+                            '−${PriceFormatter.format(coupon.discount, currency)}',
+                        positive: true,
+                      ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: AppTokens.space3),
+                      child: DashedDivider(),
+                    ),
+                    _TotalRow(
+                      label: context.l10n.total,
+                      amount: PriceFormatter.format(total, currency),
+                      emphasized: true,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -265,11 +291,25 @@ class _DeliverToCard extends StatelessWidget {
     final theme = Theme.of(context);
     final Address? deliverTo = address;
 
+    final PastelPair periwinkle = AppTokens.of(context).periwinkle;
+
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
-        Icon(Icons.location_on_outlined, color: theme.colorScheme.primary),
-        const SizedBox(width: 8),
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: periwinkle.container,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            Icons.location_on_outlined,
+            size: 20,
+            color: periwinkle.onContainer,
+          ),
+        ),
+        const SizedBox(width: AppTokens.space3),
         Expanded(
           child: deliverTo == null
               ? Text(
@@ -279,10 +319,7 @@ class _DeliverToCard extends StatelessWidget {
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(
-                      deliverTo.fullName,
-                      style: theme.textTheme.titleSmall,
-                    ),
+                    Text(deliverTo.fullName, style: theme.textTheme.titleSmall),
                     Text(
                       '${deliverTo.line1} · ${deliverTo.locality}',
                       style: theme.textTheme.bodySmall?.copyWith(
@@ -388,7 +425,6 @@ class _CouponSection extends StatelessWidget {
             decoration: InputDecoration(
               labelText: context.l10n.couponCode,
               isDense: true,
-              border: const OutlineInputBorder(),
             ),
             onSubmitted: (_) => onApply(),
           ),
@@ -413,24 +449,35 @@ class _TotalRow extends StatelessWidget {
     required this.label,
     required this.amount,
     this.emphasized = false,
+    this.positive = false,
   });
 
   final String label;
   final String amount;
   final bool emphasized;
 
+  /// Renders the amount in mint — a discount is good news.
+  final bool positive;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final AppTokens tokens = AppTokens.of(context);
     final TextStyle? style = emphasized
-        ? theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)
+        ? theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)
         : theme.textTheme.bodyMedium;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         children: <Widget>[
           Expanded(child: Text(label, style: style)),
-          Text(amount, style: style),
+          Text(
+            amount,
+            style: style?.copyWith(
+              color: positive ? tokens.mint.onContainer : null,
+              fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
+            ),
+          ),
         ],
       ),
     );
@@ -464,12 +511,20 @@ class _PaymentPendingViewState extends ConsumerState<_PaymentPendingView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Icon(
-              Icons.hourglass_top,
-              size: 56,
-              color: theme.colorScheme.tertiary,
+            Container(
+              width: 96,
+              height: 96,
+              decoration: BoxDecoration(
+                color: AppTokens.of(context).warningContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.hourglass_top,
+                size: 44,
+                color: AppTokens.of(context).onWarningContainer,
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppTokens.space5),
             Text(
               context.l10n.paymentNotCompleted,
               style: theme.textTheme.titleLarge,
@@ -544,12 +599,20 @@ class _SuccessView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Icon(
-              Icons.check_circle_outline,
-              size: 56,
-              color: theme.colorScheme.primary,
+            Container(
+              width: 96,
+              height: 96,
+              decoration: BoxDecoration(
+                color: AppTokens.of(context).mint.container,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.check_circle_outline,
+                size: 44,
+                color: AppTokens.of(context).mint.onContainer,
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppTokens.space5),
             Text(
               context.l10n.paymentReceived,
               style: theme.textTheme.titleLarge,
@@ -572,8 +635,8 @@ class _SuccessView extends StatelessWidget {
               child: Text(context.l10n.continueShopping),
             ),
             TextButton(
-              // Replace the finished checkout so back lands on the cart.
-              onPressed: () => context.pushReplacement(OrdersScreen.path),
+              // Orders is a shell tab: jump there, dropping the checkout.
+              onPressed: () => context.go(OrdersScreen.path),
               child: Text(context.l10n.viewMyOrders),
             ),
           ],
@@ -591,12 +654,20 @@ class _BottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Material(
-      color: theme.colorScheme.surfaceContainerLow,
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        border: Border(top: BorderSide(color: theme.colorScheme.outline)),
+      ),
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          padding: const EdgeInsets.fromLTRB(
+            AppTokens.space5,
+            AppTokens.space3,
+            AppTokens.space5,
+            AppTokens.space3,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[child],
