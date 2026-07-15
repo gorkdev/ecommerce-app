@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/l10n.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../shared/validation/validators.dart';
+import '../../../shared/widgets/brand_mark.dart';
 import '../application/auth_controller.dart';
 import 'login_screen.dart';
 import 'widgets/auth_error_banner.dart';
@@ -77,18 +79,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: BrandMark(),
+                    ),
+                    const SizedBox(height: AppTokens.space6),
                     Text(
                       l10n.createAccount,
-                      style: theme.textTheme.headlineMedium,
+                      style: theme.textTheme.displaySmall,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppTokens.space2),
                     Text(
                       l10n.registerSubtitle,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                        color: AppTokens.of(context).inkMuted,
                       ),
                     ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: AppTokens.space7),
                     if (_error != null) ...<Widget>[
                       AuthErrorBanner(message: _error!),
                       const SizedBox(height: 16),
@@ -150,8 +157,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             )
                           : Text(l10n.createAccount),
                     ),
-                    const SizedBox(height: 12),
-                    TextButton(
+                    const SizedBox(height: AppTokens.space3),
+                    FilledButton.tonal(
                       onPressed: _submitting
                           ? null
                           : () => context.go(LoginScreen.path),

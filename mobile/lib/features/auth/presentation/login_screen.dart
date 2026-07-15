@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/l10n.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../shared/validation/validators.dart';
+import '../../../shared/widgets/brand_mark.dart';
 import '../application/auth_controller.dart';
 import 'register_screen.dart';
 import 'widgets/auth_error_banner.dart';
@@ -73,15 +75,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    Text(l10n.welcomeBack, style: theme.textTheme.headlineMedium),
-                    const SizedBox(height: 4),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: BrandMark(),
+                    ),
+                    const SizedBox(height: AppTokens.space6),
+                    Text(l10n.welcomeBack, style: theme.textTheme.displaySmall),
+                    const SizedBox(height: AppTokens.space2),
                     Text(
                       l10n.signInSubtitle,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                        color: AppTokens.of(context).inkMuted,
                       ),
                     ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: AppTokens.space7),
                     if (_error != null) ...<Widget>[
                       AuthErrorBanner(message: _error!),
                       const SizedBox(height: 16),
@@ -132,8 +139,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             )
                           : Text(l10n.signIn),
                     ),
-                    const SizedBox(height: 12),
-                    TextButton(
+                    const SizedBox(height: AppTokens.space3),
+                    FilledButton.tonal(
                       onPressed: _submitting
                           ? null
                           : () => context.go(RegisterScreen.path),

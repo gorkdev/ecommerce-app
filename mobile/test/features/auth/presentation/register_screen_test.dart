@@ -166,10 +166,18 @@ void main() {
     await tester.tap(submitButton());
     await tester.pump();
 
-    // A spinner replaced the label, and the button is disabled.
+    // A spinner replaced the label, and the button is disabled. The sign-in
+    // link is a FilledButton.tonal too, so anchor on the spinner's ancestor.
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     expect(
-      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      tester
+          .widget<FilledButton>(
+            find.ancestor(
+              of: find.byType(CircularProgressIndicator),
+              matching: find.byType(FilledButton),
+            ),
+          )
+          .onPressed,
       isNull,
     );
 
