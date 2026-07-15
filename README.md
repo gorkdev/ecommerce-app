@@ -1,15 +1,18 @@
-# 🛒 E-Commerce Platform
+# 🛒 Storefront — Full-Stack E-Commerce Platform
 
 [![API CI](https://github.com/gorkdev/ecommerce-app/actions/workflows/api.yml/badge.svg)](https://github.com/gorkdev/ecommerce-app/actions/workflows/api.yml)
 [![Admin CI](https://github.com/gorkdev/ecommerce-app/actions/workflows/admin.yml/badge.svg)](https://github.com/gorkdev/ecommerce-app/actions/workflows/admin.yml)
 [![Mobile CI](https://github.com/gorkdev/ecommerce-app/actions/workflows/mobile.yml/badge.svg)](https://github.com/gorkdev/ecommerce-app/actions/workflows/mobile.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A full-stack, production-style e-commerce platform built as a portfolio project.
-It pairs a **Flutter** mobile storefront with a **NestJS** API, a **Next.js** admin
-dashboard, **PostgreSQL** + **MinIO** for data and media, and **Stripe** for payments —
-all orchestrated with **Docker Compose**.
+A production-style e-commerce platform built end to end as a portfolio
+project: a **Flutter** customer app with a custom design system, a **NestJS**
+REST API, a **Next.js** admin dashboard, **PostgreSQL** + **MinIO** for data
+and media, **Stripe** for payments and **Firebase Cloud Messaging** for push —
+developed milestone by milestone with **545 automated tests** and per-package
+CI.
 
-> **Status:** ✅ Feature-complete — built milestone by milestone.
+> **Status:** ✅ Feature-complete.
 
 ## Screenshots
 
@@ -46,6 +49,54 @@ walks the real app against the seeded API
   <img src="docs/screenshots/admin-users.png" width="49%" alt="Users" />
 </p>
 
+## Features
+
+**Customer app (Flutter)**
+- Browsing: infinite-scroll catalog, debounced search, category chips,
+  price/sort filters, image galleries
+- Buying: server-truth cart, coupon quotes, Stripe payment sheet with
+  retryable pending payments, address picker
+- After the sale: order history with a fulfilment timeline, verified-buyer
+  reviews and ratings, favorites
+- Experience: bespoke "soft modern" design system (light + dark), bottom
+  navigation, English/Turkish with an in-app language picker, FCM push
+  notifications that deep-link into the order
+
+**Admin panel (Next.js)**
+- KPI dashboard: revenue, order pipeline, customers, low-stock alerts
+- Product & category management with direct-to-MinIO presigned image uploads
+- Order lifecycle transitions, coupon CRUD with usage/expiry state,
+  review moderation, user & role management
+
+**API (NestJS + Prisma)**
+- JWT auth with rotating single-use refresh tokens and role guards
+- Stripe checkout + webhooks; stock reserved on PENDING orders; atomic
+  coupon redemption
+- Localized push copy rendered server-side per device language, with
+  automatic dead-token pruning
+- Media via S3-compatible presigned uploads; migrations for every schema
+  change; DTO validation everywhere
+
+## Engineering Highlights
+
+- **545 automated tests** — 284 Flutter widget/unit tests, 133 API unit
+  tests, 128 API e2e tests running against real Postgres + MinIO in CI.
+- **Per-package CI** on GitHub Actions; the API e2e job boots the same
+  Docker Compose services developers use locally.
+- **Design tokens, not ad-hoc styles:** a `ThemeExtension` carries the
+  pastel palette (every pair guarded by a WCAG-AA contrast test), spacing
+  and radius scales; screens never hardcode a color.
+- **Resilient seams:** Stripe, Firebase and MinIO each sit behind a single
+  service class — the app builds, runs and tests without any of their
+  credentials, degrading features instead of crashing.
+- **Server-authoritative money:** carts, coupon quotes and order totals are
+  computed server-side only; clients render decimal strings verbatim.
+- **Single-flight token refresh** on mobile: concurrent 401s collapse into
+  one refresh; session expiry propagates without provider cycles.
+- **Demo data that photographs well:** an idempotent seed builds a
+  24-product store with curated real photography (Unsplash License)
+  uploaded to MinIO, plus orders, reviews and coupons in every state.
+
 ## Architecture
 
 ```
@@ -66,9 +117,9 @@ walks the real app against the seeded API
               │  (Prisma)  │  │ (S3 images)  │
               └────────────┘  └──────────────┘
                        │
-                ┌──────▼──────┐
-                │   Stripe    │  (test mode · webhooks)
-                └─────────────┘
+              ┌────────▼────────┐
+              │ Stripe · FCM    │  (payments · push)
+              └─────────────────┘
 ```
 
 ## Tech Stack
@@ -81,26 +132,16 @@ walks the real app against the seeded API
 | Object storage | MinIO (S3-compatible) | latest |
 | Admin panel | Next.js · React · TanStack Query · Tailwind | Next 16 · React 19 |
 | Payments | Stripe (test mode) | stripe-node 22 · flutter_stripe 13 |
+| Push | Firebase Cloud Messaging | firebase-admin 14 |
 | Runtime | Node.js | 24 LTS |
 | Orchestration | Docker Compose | — |
 
 > Version choices are deliberately the **latest *stable*** of each tool (no betas/RCs).
 
-## Repository Structure
-
-```
-ecommerce-app/
-├── api/                # NestJS + Prisma REST API
-├── admin/              # Next.js admin dashboard
-├── mobile/             # Flutter customer app
-├── docker-compose.yml  # postgres + minio (infra)
-└── .env.example        # configuration template
-```
-
 ## Getting Started
 
 ```bash
-# 1. Copy environment template
+# 1. Copy the environment template
 cp .env.example .env
 
 # 2. Bring up the infrastructure (PostgreSQL + MinIO)
@@ -109,19 +150,59 @@ docker compose up -d
 #    MinIO console:  http://localhost:9001  (minioadmin / minioadmin)
 #    PostgreSQL:     localhost:5432
 
-# 3. Set up the API, then load the demo store (optional but recommended)
+# 3. API — migrate, seed the demo store, run
 cd api && npm install && npx prisma migrate dev
 npm run prisma:seed
+npm run start:dev            # http://localhost:3000
+
+# 4. Admin panel
+cd ../admin && npm install
+npm run dev                  # http://localhost:3001
+
+# 5. Mobile app (Android emulator or device)
+cd ../mobile && flutter pub get
+flutter run
 ```
 
-The seed fills the store with categories, products (placeholder images
-included), coupons, orders and reviews, and prints the demo sign-in
-credentials for the admin panel and the mobile app.
+The seed builds a complete demo store — categories, 24 products with real
+photography, coupons, orders and reviews — so every screen has something to
+show on first launch.
 
-Per-service setup (api / admin / mobile) is documented in each subfolder's README
-as those milestones land.
+| Demo account | Email | Password |
+|--------------|-------|----------|
+| Admin (dashboard) | `admin@example.com` | `Admin123!` |
+| Customer (mobile) | `ada@example.com` | `Customer123!` |
 
-## Roadmap
+Optional integrations are documented per package: Stripe keys and webhooks in
+[`api/README.md`](api/README.md), Firebase push setup in
+[`api/README.md`](api/README.md) and [`mobile/README.md`](mobile/README.md).
+
+## Testing
+
+```bash
+cd api && npm test              # 133 unit tests
+cd api && npm run test:e2e      # 128 e2e tests (needs docker compose up)
+cd mobile && flutter test       # 284 widget/unit tests
+cd admin && npm run lint && npm run typecheck
+```
+
+## Repository Structure
+
+```
+ecommerce-app/
+├── api/                # NestJS + Prisma REST API
+├── admin/              # Next.js admin dashboard
+├── mobile/             # Flutter customer app
+├── docs/screenshots/   # generated app screenshots
+├── .github/workflows/  # per-package CI
+├── docker-compose.yml  # postgres + minio (infra)
+└── .env.example        # configuration template
+```
+
+## Development Log
+
+Built strictly milestone by milestone — every milestone shipped with its
+tests before the next one started.
 
 - [x] **M0** — Repo, docs, infra skeleton (Postgres + MinIO)
 - [x] **M1** — Backend foundation (NestJS skeleton, Prisma schema, initial migration)
@@ -132,34 +213,13 @@ as those milestones land.
 - [x] **M6** — Orders + Stripe checkout + webhooks — unit + e2e tested
 - [x] **M7** — Reviews & ratings (verified-buyer reviews, rating summary, admin moderation) — unit + e2e tested
 - [x] **M8** — Coupons / discounts (admin CRUD, cart preview, atomic checkout redemption) — unit + e2e tested
-- [x] **M9** — Admin panel UI (dashboard, products, orders, users) — unit + e2e tested
-  - [x] Foundation: Next.js 16 + shadcn/ui, JWT admin login, protected shell, Products CRUD
-  - [x] Product media upload (MinIO presigned uploads, image management)
-  - [x] Categories (nested tree CRUD, re-parent with cycle guard)
-  - [x] Orders (list, status filter, detail view, lifecycle transitions)
-  - [x] Coupons (discount-code CRUD, usage/expiry state, delete guard)
-  - [x] Reviews (moderation list with ratings, remove policy-violating reviews)
-  - [x] Users (list, search, role filter, detail view, role management)
-  - [x] Dashboard (revenue/orders/customers/low-stock KPIs, order pipeline, recent activity)
+- [x] **M9** — Admin panel UI (dashboard, products, orders, coupons, reviews, users) — e2e tested via the API
 - [x] **M10** — Flutter app (full customer flow) — widget + unit tested
-  - [x] Foundation + auth (self-refreshing JWT client, secure storage, gated router)
-  - [x] Catalog (infinite-scroll grid, debounced search, filters, product detail)
-  - [x] Cart & favorites (server-truth cart, optimistic favorite hearts)
-  - [x] Stripe checkout (coupon quotes, payment sheet, retryable pending payments)
-  - [x] Orders & tracking (history, fulfilment timeline, charged totals)
-  - [x] Profile & addresses (account hub, address book, checkout address picker)
-  - [x] Reviews & ratings (summary with distribution, verified-buyer write/edit)
 - [x] **M11** — Internationalization (English + Turkish, in-app language picker) — widget + unit tested
 - [x] **M12** — Push notifications (FCM: localized order-status pushes, deep links) — unit + e2e + widget tested
-- [x] **M13** — Polish
-  - [x] Demo seed: a 24-product store with real photography (curated Unsplash,
-        uploaded to MinIO at seed time), orders, reviews and coupons
-  - [x] CI: GitHub Actions per package — api (unit + e2e against real
-        Postgres/MinIO), admin (lint + typecheck + build), mobile (analyze + test)
-  - [x] Mobile design refresh: soft-modern design system (tokens, Plus Jakarta
-        Sans, pastel palette), bottom navigation shell, every screen redesigned
-  - [x] Screenshot gallery generated by an on-device integration test
+- [x] **M13** — Polish: demo seed with real imagery, per-package CI, a full
+      mobile design refresh, and a generated screenshot gallery
 
 ## License
 
-MIT
+[MIT](LICENSE)
