@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/l10n.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../shared/widgets/empty_view.dart';
 import '../../../shared/widgets/error_view.dart';
+import '../../../shared/widgets/soft_card.dart';
 import '../application/addresses_controller.dart';
 import '../domain/address.dart';
 import 'address_form_screen.dart';
@@ -69,9 +71,9 @@ class AddressesScreen extends ConsumerWidget {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.all(16),
+      padding: AppTokens.screenPadding,
       itemCount: addresses.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      separatorBuilder: (_, _) => const SizedBox(height: AppTokens.space3),
       itemBuilder: (_, int index) => _AddressCard(addresses[index]),
     );
   }
@@ -86,10 +88,15 @@ class _AddressCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
-    return Card(
-      margin: EdgeInsets.zero,
+    return SoftCard(
+      padding: const EdgeInsets.fromLTRB(
+        AppTokens.space4,
+        AppTokens.space3,
+        AppTokens.space1,
+        AppTokens.space3,
+      ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 4, 12),
+        padding: EdgeInsets.zero,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -114,13 +121,14 @@ class _AddressCard extends ConsumerWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.secondaryContainer,
+                            color: theme.colorScheme.primaryContainer,
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(
                             context.l10n.defaultBadge,
                             style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.onSecondaryContainer,
+                              color: theme.colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),

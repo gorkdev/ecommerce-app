@@ -1,5 +1,6 @@
 import 'package:ecommerce_app/core/l10n/locale_controller.dart';
 import 'package:ecommerce_app/core/storage/token_storage.dart';
+import 'package:ecommerce_app/core/theme/app_theme.dart';
 import 'package:ecommerce_app/features/auth/data/auth_repository.dart';
 import 'package:ecommerce_app/features/auth/domain/auth_user.dart';
 import 'package:ecommerce_app/features/profile/presentation/profile_screen.dart';
@@ -30,6 +31,7 @@ class _LocaleAwareApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
+      theme: AppTheme.light,
       locale: ref.watch(localeControllerProvider),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,

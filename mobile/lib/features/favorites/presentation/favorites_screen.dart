@@ -4,10 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/l10n.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../shared/formatting/price_formatter.dart';
 import '../../../shared/widgets/empty_view.dart';
 import '../../../shared/widgets/error_view.dart';
 import '../../../shared/widgets/remote_thumbnail.dart';
+import '../../../shared/widgets/soft_card.dart';
 import '../../catalog/presentation/product_detail_screen.dart';
 import '../application/favorites_controller.dart';
 import '../domain/favorite.dart';
@@ -56,9 +58,9 @@ class FavoritesScreen extends ConsumerWidget {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.all(16),
+      padding: AppTokens.screenPadding,
       itemCount: items.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      separatorBuilder: (_, _) => const SizedBox(height: AppTokens.space3),
       itemBuilder: (_, int index) => _FavoriteTile(items[index]),
     );
   }
@@ -78,14 +80,14 @@ class _FavoriteTile extends ConsumerWidget {
         ? context.l10n.outOfStock
         : null;
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
+    return SoftCard(
+      padding: const EdgeInsets.all(AppTokens.space3),
       onTap: () =>
           context.push(ProductDetailScreen.location(favorite.product.slug)),
       child: Row(
         children: <Widget>[
-          RemoteThumbnail(url: favorite.product.imageUrl),
-          const SizedBox(width: 12),
+          RemoteThumbnail(url: favorite.product.imageUrl, size: 72),
+          const SizedBox(width: AppTokens.space3),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,7 +96,7 @@ class _FavoriteTile extends ConsumerWidget {
                   favorite.product.name,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium,
+                  style: theme.textTheme.titleSmall,
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -103,7 +105,10 @@ class _FavoriteTile extends ConsumerWidget {
                     favorite.product.currency,
                   ),
                   style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
+                    fontFeatures: const <FontFeature>[
+                      FontFeature.tabularFigures(),
+                    ],
                   ),
                 ),
                 if (warning != null) ...<Widget>[
