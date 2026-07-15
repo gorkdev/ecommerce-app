@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/l10n.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../shared/formatting/date_formatter.dart';
 import '../../../shared/widgets/error_view.dart';
+import '../../../shared/widgets/soft_card.dart';
 import '../application/reviews_providers.dart';
 import '../data/reviews_repository.dart';
 import '../domain/review.dart';
@@ -52,42 +54,51 @@ class ReviewsScreen extends ConsumerWidget {
 
     final theme = Theme.of(context);
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: AppTokens.screenPadding,
       children: <Widget>[
         if (reviews.summary.count > 0) ...<Widget>[
-          _SummaryHeader(reviews.summary),
-          const SizedBox(height: 16),
+          SoftCard(child: _SummaryHeader(reviews.summary)),
+          const SizedBox(height: AppTokens.space4),
         ],
         _OwnReviewCta(productId),
-        const Divider(height: 32),
+        const SizedBox(height: AppTokens.space5),
         if (reviews.items.isEmpty)
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24),
+            padding: const EdgeInsets.symmetric(vertical: AppTokens.space6),
             child: Column(
               children: <Widget>[
-                Icon(
-                  Icons.rate_review_outlined,
-                  size: 48,
-                  color: theme.colorScheme.onSurfaceVariant,
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.rate_review_outlined,
+                    size: 32,
+                    color: theme.colorScheme.onPrimaryContainer,
+                  ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppTokens.space5),
                 Text(
                   context.l10n.noReviewsYet,
                   style: theme.textTheme.titleMedium,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppTokens.space2),
                 Text(
                   context.l10n.beFirstToReview,
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+                  style: theme.textTheme.bodySmall,
                 ),
               ],
             ),
           )
         else
-          for (final Review review in reviews.items) _ReviewTile(review),
+          for (final Review review in reviews.items) ...<Widget>[
+            _ReviewTile(review),
+            const SizedBox(height: AppTokens.space3),
+          ],
       ],
     );
   }
@@ -177,7 +188,7 @@ class _OwnReviewCta extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final Review? own = ref.watch(myReviewProvider(productId)).value;
 
-    return OutlinedButton.icon(
+    return FilledButton.tonalIcon(
       icon: Icon(own == null ? Icons.rate_review_outlined : Icons.edit),
       label: Text(
         own == null ? context.l10n.writeReview : context.l10n.editYourReview,
@@ -199,38 +210,54 @@ class _ReviewTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final AppTokens tokens = AppTokens.of(context);
     final String? comment = review.comment;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
+    return SoftCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Row(
             children: <Widget>[
-              Expanded(
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: tokens.violet.container,
                 child: Text(
-                  review.authorName,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleSmall,
+                  review.authorName.isEmpty
+                      ? '?'
+                      : review.authorName[0].toUpperCase(),
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: tokens.violet.onContainer,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
-              Text(
-                DateFormatter.date(review.createdAt, context.l10n.localeName),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+              const SizedBox(width: AppTokens.space3),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      review.authorName,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleSmall,
+                    ),
+                    Text(
+                      DateFormatter.date(
+                        review.createdAt,
+                        context.l10n.localeName,
+                      ),
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ],
                 ),
               ),
+              RatingStars(review.rating.toDouble(), size: 14),
             ],
           ),
-          const SizedBox(height: 2),
-          RatingStars(review.rating.toDouble(), size: 14),
           if (comment != null && comment.isNotEmpty) ...<Widget>[
-            const SizedBox(height: 6),
-            Text(
-              comment,
-              style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
-            ),
+            const SizedBox(height: AppTokens.space2),
+            Text(comment, style: theme.textTheme.bodyMedium),
           ],
         ],
       ),
@@ -298,10 +325,7 @@ class _ReviewFormSheetState extends ConsumerState<_ReviewFormSheet> {
             maxLines: 4,
             maxLength: 2000,
             textCapitalization: TextCapitalization.sentences,
-            decoration: InputDecoration(
-              labelText: l10n.commentOptional,
-              border: const OutlineInputBorder(),
-            ),
+            decoration: InputDecoration(labelText: l10n.commentOptional),
           ),
           const SizedBox(height: 8),
           FilledButton(

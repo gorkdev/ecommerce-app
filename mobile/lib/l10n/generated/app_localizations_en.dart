@@ -521,4 +521,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String promoBannerBody(String code) {
     return 'Use code $code at checkout';
   }
+
+  @override
+  String get seeAllReviews => 'See all reviews';
+
+  @override
+  String lowStockLeft(int count) {
+    return 'Only $count left in stock';
+  }
 }

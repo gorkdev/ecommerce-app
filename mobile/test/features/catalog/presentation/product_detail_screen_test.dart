@@ -109,11 +109,12 @@ void main() {
 
     await pumpDetail(tester);
 
-    // Name shows in the app bar and in the body.
-    expect(find.text('Wireless Headphones'), findsNWidgets(2));
-    expect(find.text('₺75.00'), findsOneWidget);
+    expect(find.text('Wireless Headphones'), findsOneWidget);
+    // Once in the price row, once on the sticky bottom bar.
+    expect(find.text('₺75.00'), findsNWidgets(2));
     expect(find.text('AUDIO'), findsOneWidget);
-    expect(find.text('In stock'), findsOneWidget);
+    // Three units left triggers the low-stock nudge.
+    expect(find.text('Only 3 left in stock'), findsOneWidget);
     expect(find.text('Crisp sound, all-day battery.'), findsOneWidget);
   });
 
@@ -265,10 +266,12 @@ void main() {
 
     await pumpDetail(tester);
 
-    expect(find.text('4.2 · 12 reviews'), findsOneWidget);
+    // The rating chip: ★ 4.2 (12).
+    expect(find.text('4.2'), findsOneWidget);
+    expect(find.text('(12)'), findsOneWidget);
   });
 
-  testWidgets('a review-less product invites the first review', (
+  testWidgets('a review-less product shows a zero rating chip', (
     WidgetTester tester,
   ) async {
     when(
@@ -277,7 +280,10 @@ void main() {
 
     await pumpDetail(tester);
 
-    expect(find.text('No reviews yet'), findsOneWidget);
+    // The invite to write the first review lives on the reviews screen;
+    // the detail page just reports the honest zero.
+    expect(find.text('0.0'), findsOneWidget);
+    expect(find.text('(0)'), findsOneWidget);
   });
 
   testWidgets('a vanished product reads as gone, with no retry', (
@@ -312,6 +318,6 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Try again'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Wireless Headphones'), findsNWidgets(2));
+    expect(find.text('Wireless Headphones'), findsOneWidget);
   });
 }

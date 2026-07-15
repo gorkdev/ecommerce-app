@@ -1039,6 +1039,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use code {code} at checkout'**
   String promoBannerBody(String code);
+
+  /// No description provided for @seeAllReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'See all reviews'**
+  String get seeAllReviews;
+
+  /// No description provided for @lowStockLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {count} left in stock'**
+  String lowStockLeft(int count);
 }
 
 class _AppLocalizationsDelegate

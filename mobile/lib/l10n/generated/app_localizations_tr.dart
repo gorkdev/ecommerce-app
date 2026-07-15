@@ -522,4 +522,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String promoBannerBody(String code) {
     return 'Ödemede $code kodunu kullan';
   }
+
+  @override
+  String get seeAllReviews => 'Tüm değerlendirmeler';
+
+  @override
+  String lowStockLeft(int count) {
+    return 'Stokta son $count adet';
+  }
 }

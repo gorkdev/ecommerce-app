@@ -249,5 +249,12 @@
     "placeholders": {
       "code": { "type": "String" }
     }
+  },
+  "seeAllReviews": "See all reviews",
+  "lowStockLeft": "Only {count} left in stock",
+  "@lowStockLeft": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
   }
 }

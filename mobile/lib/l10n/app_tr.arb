@@ -172,5 +172,7 @@
 
   "greeting": "Merhaba {name} 👋",
   "promoBannerTitle": "İlk siparişinde %10 indirim",
-  "promoBannerBody": "Ödemede {code} kodunu kullan"
+  "promoBannerBody": "Ödemede {code} kodunu kullan",
+  "seeAllReviews": "Tüm değerlendirmeler",
+  "lowStockLeft": "Stokta son {count} adet"
 }
