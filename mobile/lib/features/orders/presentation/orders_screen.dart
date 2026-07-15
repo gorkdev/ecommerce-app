@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/l10n.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../shared/formatting/date_formatter.dart';
 import '../../../shared/formatting/price_formatter.dart';
 import '../../../shared/widgets/empty_view.dart';
 import '../../../shared/widgets/error_view.dart';
+import '../../../shared/widgets/soft_card.dart';
 import '../../catalog/presentation/catalog_screen.dart';
 import '../application/orders_providers.dart';
 import '../domain/order.dart';
@@ -61,9 +63,9 @@ class OrdersScreen extends ConsumerWidget {
     return RefreshIndicator(
       onRefresh: () => ref.refresh(ordersProvider.future),
       child: ListView.separated(
-        padding: const EdgeInsets.all(16),
+        padding: AppTokens.screenPadding,
         itemCount: orders.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 12),
+        separatorBuilder: (_, _) => const SizedBox(height: AppTokens.space3),
         itemBuilder: (_, int index) => _OrderCard(orders[index]),
       ),
     );
@@ -79,60 +81,49 @@ class _OrderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      margin: EdgeInsets.zero,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () => context.push(OrderDetailScreen.location(order.id)),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return SoftCard(
+      onTap: () => context.push(OrderDetailScreen.location(order.id)),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  context.l10n.orderRef(order.reference),
+                  style: theme.textTheme.titleSmall,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  DateFormatter.date(order.createdAt, context.l10n.localeName),
+                  style: theme.textTheme.bodySmall,
+                ),
+                Text(
+                  context.l10n.nItems(order.itemCount),
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppTokens.space3),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: <Widget>[
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      context.l10n.orderRef(order.reference),
-                      style: theme.textTheme.titleSmall,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      DateFormatter.date(
-                        order.createdAt,
-                        context.l10n.localeName,
-                      ),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    Text(
-                      context.l10n.nItems(order.itemCount),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
+              Text(
+                PriceFormatter.format(order.total, order.currency),
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  fontFeatures: const <FontFeature>[
+                    FontFeature.tabularFigures(),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: <Widget>[
-                  Text(
-                    PriceFormatter.format(order.total, order.currency),
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  OrderStatusChip(order.status),
-                ],
-              ),
+              const SizedBox(height: AppTokens.space1),
+              OrderStatusChip(order.status),
             ],
           ),
-        ),
+        ],
       ),
     );
   }

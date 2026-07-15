@@ -4,10 +4,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/l10n.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../shared/formatting/date_formatter.dart';
 import '../../../shared/formatting/price_formatter.dart';
+import '../../../shared/widgets/dashed_divider.dart';
 import '../../../shared/widgets/error_view.dart';
 import '../../../shared/widgets/remote_thumbnail.dart';
+import '../../../shared/widgets/soft_card.dart';
 import '../../catalog/presentation/product_detail_screen.dart';
 import '../application/orders_providers.dart';
 import '../domain/order.dart';
@@ -61,7 +64,7 @@ class OrderDetailScreen extends ConsumerWidget {
     return RefreshIndicator(
       onRefresh: () => ref.refresh(orderDetailProvider(orderId).future),
       child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: AppTokens.screenPadding,
         children: <Widget>[
           Row(
             children: <Widget>[
@@ -74,40 +77,59 @@ class OrderDetailScreen extends ConsumerWidget {
               OrderStatusChip(order.status),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppTokens.space1),
           Text(
             l10n.placedOn(
               DateFormatter.dateTime(order.createdAt, l10n.localeName),
             ),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+            style: theme.textTheme.bodySmall,
+          ),
+          const SizedBox(height: AppTokens.space4),
+          SoftCard(child: _StatusTimeline(order.status)),
+          const SizedBox(height: AppTokens.space4),
+          SoftCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(l10n.items, style: theme.textTheme.titleMedium),
+                const SizedBox(height: AppTokens.space2),
+                for (final OrderItem item in order.items)
+                  _OrderItemTile(item, currency: order.currency),
+              ],
             ),
           ),
-          const SizedBox(height: 16),
-          _StatusTimeline(order.status),
-          const Divider(height: 32),
-          Text(l10n.items, style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          for (final OrderItem item in order.items)
-            _OrderItemTile(item, currency: order.currency),
-          const Divider(height: 32),
-          _TotalRow(
-            label: l10n.subtotal,
-            amount: PriceFormatter.format(order.subtotal, order.currency),
-          ),
-          if (order.hasDiscount)
-            _TotalRow(
-              label: order.coupon == null
-                  ? l10n.discount
-                  : l10n.discountWithCode(order.coupon!.code),
-              amount:
-                  '−${PriceFormatter.format(order.discountTotal, order.currency)}',
+          const SizedBox(height: AppTokens.space4),
+          SoftCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                _TotalRow(
+                  label: l10n.subtotal,
+                  amount: PriceFormatter.format(
+                    order.subtotal,
+                    order.currency,
+                  ),
+                ),
+                if (order.hasDiscount)
+                  _TotalRow(
+                    label: order.coupon == null
+                        ? l10n.discount
+                        : l10n.discountWithCode(order.coupon!.code),
+                    amount:
+                        '−${PriceFormatter.format(order.discountTotal, order.currency)}',
+                    positive: true,
+                  ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: AppTokens.space3),
+                  child: DashedDivider(),
+                ),
+                _TotalRow(
+                  label: l10n.total,
+                  amount: PriceFormatter.format(order.total, order.currency),
+                  emphasized: true,
+                ),
+              ],
             ),
-          const SizedBox(height: 4),
-          _TotalRow(
-            label: l10n.total,
-            amount: PriceFormatter.format(order.total, order.currency),
-            emphasized: true,
           ),
         ],
       ),
@@ -145,20 +167,24 @@ class _StatusTimeline extends StatelessWidget {
     final AppLocalizations l10n = context.l10n;
 
     if (status == OrderStatus.cancelled || status == OrderStatus.refunded) {
+      // Terminal states reuse the status-chip palette: neutral for a
+      // cancellation, rose for money going back.
+      final PastelPair pair = OrderStatusChip.pairFor(
+        AppTokens.of(context),
+        status,
+      );
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(AppTokens.space3),
         decoration: BoxDecoration(
-          color: theme.colorScheme.errorContainer,
-          borderRadius: BorderRadius.circular(12),
+          color: pair.container,
+          borderRadius: BorderRadius.circular(AppTokens.radiusSm),
         ),
         child: Text(
           status == OrderStatus.cancelled
               ? l10n.orderCancelledBanner
               : l10n.orderRefundedBanner,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onErrorContainer,
-          ),
+          style: theme.textTheme.bodyMedium?.copyWith(color: pair.onContainer),
         ),
       );
     }
@@ -193,12 +219,14 @@ class _StatusTimeline extends StatelessWidget {
                     : theme.colorScheme.outlineVariant,
               ),
               const SizedBox(width: 12),
-              Text(
-                _stepLabel(l10n, step),
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: index <= reached
-                      ? null
-                      : theme.colorScheme.onSurfaceVariant,
+              Expanded(
+                child: Text(
+                  _stepLabel(l10n, step),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: index <= reached
+                        ? null
+                        : theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
             ],
@@ -271,24 +299,35 @@ class _TotalRow extends StatelessWidget {
     required this.label,
     required this.amount,
     this.emphasized = false,
+    this.positive = false,
   });
 
   final String label;
   final String amount;
   final bool emphasized;
 
+  /// Renders the amount in mint — a discount is good news.
+  final bool positive;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final AppTokens tokens = AppTokens.of(context);
     final TextStyle? style = emphasized
-        ? theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)
+        ? theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)
         : theme.textTheme.bodyMedium;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         children: <Widget>[
           Expanded(child: Text(label, style: style)),
-          Text(amount, style: style),
+          Text(
+            amount,
+            style: style?.copyWith(
+              color: positive ? tokens.mint.onContainer : null,
+              fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
+            ),
+          ),
         ],
       ),
     );
