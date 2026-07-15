@@ -1,0 +1,60 @@
+name: API CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "api/**"
+      - "docker-compose.yml"
+      - ".github/workflows/api.yml"
+  pull_request:
+    paths:
+      - "api/**"
+      - "docker-compose.yml"
+      - ".github/workflows/api.yml"
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Unit + e2e tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The same compose file developers use locally: Postgres 18 + MinIO
+      # (plus the one-shot job that creates the public image bucket).
+      - name: Start Postgres + MinIO
+        working-directory: .
+        run: |
+          docker compose up -d --wait postgres minio
+          docker compose up minio-init
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The example env matches the compose defaults (localhost:5432, minioadmin).
+      # Stripe keys stay placeholders: the e2e suites stub the payment seam.
+      - name: Configure environment
+        run: cp .env.example .env
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Apply migrations
+        run: npx prisma migrate deploy
+
+      - name: E2E tests
+        run: npm run test:e2e

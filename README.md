@@ -1,5 +1,9 @@
 # 🛒 E-Commerce Platform
 
+[![API CI](https://github.com/gorkdev/ecommerce-app/actions/workflows/api.yml/badge.svg)](https://github.com/gorkdev/ecommerce-app/actions/workflows/api.yml)
+[![Admin CI](https://github.com/gorkdev/ecommerce-app/actions/workflows/admin.yml/badge.svg)](https://github.com/gorkdev/ecommerce-app/actions/workflows/admin.yml)
+[![Mobile CI](https://github.com/gorkdev/ecommerce-app/actions/workflows/mobile.yml/badge.svg)](https://github.com/gorkdev/ecommerce-app/actions/workflows/mobile.yml)
+
 A full-stack, production-style e-commerce platform built as a portfolio project.
 It pairs a **Flutter** mobile storefront with a **NestJS** API, a **Next.js** admin
 dashboard, **PostgreSQL** + **MinIO** for data and media, and **Stripe** for payments —
